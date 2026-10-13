@@ -1,0 +1,12 @@
+<section id="food-list" class="card"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <h2>Your quick foods</h2>
+  {% if foods %}
+  <ul class="list">
+    {% for food in foods %}
+      {% with first = loop.first, last = loop.last %}{% include "partials/food_row.html" %}{% endwith %}
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty">No quick foods yet. Add one above, or flip "Save as quick food" when logging.</p>
+  {% endif %}
+</section>

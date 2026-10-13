@@ -1,0 +1,12 @@
+<li id="food-{{ food.id }}" class="row">
+  <div class="row-main">
+    <div class="row-title">{{ food.name }}{% if food.serving_label %} <span class="row-sub">· {{ food.serving_label }}</span>{% endif %}</div>
+    <div class="row-sub">{{ food.calories }} kcal · P {{ food.protein|num }} · F {{ food.fat|num }} · C {{ food.carbs|num }}</div>
+  </div>
+  <button type="button" class="icon-btn" aria-label="Move {{ food.name }} up"{% if first %} disabled{% endif %}
+          hx-post="/quick-foods/{{ food.id }}/move?direction=up" hx-target="#food-list" hx-swap="outerHTML">↑</button>
+  <button type="button" class="icon-btn" aria-label="Move {{ food.name }} down"{% if last %} disabled{% endif %}
+          hx-post="/quick-foods/{{ food.id }}/move?direction=down" hx-target="#food-list" hx-swap="outerHTML">↓</button>
+  <button type="button" class="icon-btn" aria-label="Edit {{ food.name }}"
+          hx-get="/quick-foods/{{ food.id }}/edit" hx-target="#food-{{ food.id }}" hx-swap="outerHTML">✎</button>
+</li>

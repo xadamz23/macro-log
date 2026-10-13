@@ -1,0 +1,8 @@
+<section id="food-add" class="card">
+  <h2>Add quick food</h2>
+  <form class="stack" hx-post="/quick-foods" hx-target="#food-add" hx-swap="outerHTML" x-data="macroForm">
+    {% include "partials/food_fields.html" %}
+    <div class="actions"><button class="btn btn-primary" type="submit">Add</button></div>
+  </form>
+</section>
+{% if with_list %}{% include "partials/food_list.html" %}{% endif %}
