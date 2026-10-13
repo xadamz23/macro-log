@@ -12,6 +12,7 @@ WORKDIR /app
 COPY --from=build --chown=app:app /app /app
 ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1
 USER app
+EXPOSE 8003
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
   CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8003/healthz', timeout=3)"
 ENTRYPOINT ["/app/docker/entrypoint.sh"]

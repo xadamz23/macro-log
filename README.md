@@ -18,7 +18,7 @@ New migration after changing `app/models.py`: `make revision m="describe change"
 ```bash
 cp .env.example .env   # edit values
 make up                # builds macro-log:local, starts app + postgres
-curl localhost:8000/healthz
+curl localhost:8003/healthz
 make down
 ```
 
