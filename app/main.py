@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import sessionmaker
 
 from app.config import Settings, get_settings
+from app.csrf import install_csrf_guard
 from app.db import make_engine
 from app.routes import entries, pages
 from app.routes import settings as settings_routes
@@ -25,6 +26,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def healthz() -> dict:
         return {"ok": True}
 
+    install_csrf_guard(app)
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     app.include_router(pages.router)
     app.include_router(entries.router)
