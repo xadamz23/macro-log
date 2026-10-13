@@ -52,3 +52,13 @@ def test_today_and_future_day_redirect_home(client):
 def test_static_assets_served(client):
     assert client.get("/static/css/app.css").status_code == 200
     assert client.get("/static/vendor/htmx.min.js").status_code == 200
+
+
+def test_entries_listed_newest_first(client, db):
+    from datetime import UTC, datetime
+
+    create_entry(db, day=TODAY, macros=Macros(100), name="Breakfast", now=datetime(2026, 10, 13, 13, tzinfo=UTC))
+    create_entry(db, day=TODAY, macros=Macros(100), name="Dinner", now=datetime(2026, 10, 14, 0, tzinfo=UTC))
+    create_entry(db, day=TODAY, macros=Macros(100), name="Lunch", now=datetime(2026, 10, 13, 18, tzinfo=UTC))
+    html = client.get("/").text
+    assert html.index("Dinner") < html.index("Lunch") < html.index("Breakfast")

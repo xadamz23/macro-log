@@ -15,13 +15,13 @@ from app.services.macros import Macros
 DAY = date(2026, 10, 13)
 
 
-def test_create_and_list_in_logged_order(db):
+def test_list_entries_newest_first(db):
     second = create_entry(db, day=DAY, macros=Macros(200, 10, 5, 20), name="Lunch",
                           now=datetime(2026, 10, 13, 18, tzinfo=UTC))
     first = create_entry(db, day=DAY, macros=Macros(100, 5, 2, 10), name="Breakfast",
                          now=datetime(2026, 10, 13, 13, tzinfo=UTC))
     create_entry(db, day=date(2026, 10, 12), macros=Macros(999))
-    assert [e.id for e in list_entries(db, DAY)] == [first.id, second.id]
+    assert [e.id for e in list_entries(db, DAY)] == [second.id, first.id]
 
 
 def test_blank_name_stored_as_none(db):

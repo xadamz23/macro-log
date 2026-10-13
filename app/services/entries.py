@@ -54,7 +54,7 @@ def get_entry(db: Session, entry_id: int) -> Entry | None:
 
 
 def list_entries(db: Session, day: date) -> list[Entry]:
-    stmt = select(Entry).where(Entry.day == day).order_by(Entry.logged_at, Entry.id)
+    stmt = select(Entry).where(Entry.day == day).order_by(Entry.logged_at.desc(), Entry.id.desc())
     return list(db.scalars(stmt))
 
 
