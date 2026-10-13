@@ -17,7 +17,7 @@ Fresh, empty repo (`macro-log`, no commits). Build a single-user web app for log
 ## Data model
 - **settings** (single row): `timezone` (IANA, default from env `APP_TZ`).
 - **targets**: `id, effective_date (date, unique), calories, protein, fat, carbs, created_at`. Targets for day D = row with greatest `effective_date <= D` (fallback: earliest row). Saving targets in Settings **upserts the row for today** — earlier days keep resolving to older rows, so history is untouched. Settings shows the target change history.
-- **quick_foods**: `id, name, serving_label, calories, protein, fat, carbs, sort_order`.
+- **quick_foods**: `id, name, serving_label, calories, protein, fat, carbs`.
 - **entries**: `id, day (local date), logged_at (UTC timestamp), name (nullable), calories, protein, fat, carbs, servings (default 1), quick_food_id (nullable, ON DELETE SET NULL)`. Macros are **snapshotted** (already multiplied by servings), so editing/deleting a quick food never changes past entries.
 - Numbers: calories stored as integer; P/F/C as float rounded to 0.1 on input.
 - **Recent foods** (derived, no table): named entries from last 30 days, grouped by name+macros, ranked by frequency/recency, excluding names already in quick foods, top 8.
@@ -34,12 +34,12 @@ app/
     clock.py       # today() in configured TZ
     targets.py     # resolve_targets(day), set_targets_today()
     entries.py     # CRUD, day totals, calorie autofill helper
-    foods.py       # quick food CRUD/reorder, recent_foods()
+    foods.py       # quick food CRUD, recent_foods()
     history.py     # per-day totals+targets, 7/30-day averages, chart series
   routes/
     pages.py       # GET / (today), /day/{date}, /history, /settings, /settings/foods
     entries.py     # POST /entries, POST /quick-foods/{id}/log, GET/PUT/DELETE /entries/{id}
-    foods.py       # quick food CRUD + reorder (HTMX partials)
+    foods.py       # quick food CRUD (HTMX partials)
     settings.py    # targets + timezone forms
     history.py     # GET /history/data?days=N (JSON for Chart.js), paged day list partial
   templates/
@@ -61,7 +61,7 @@ Dockerfile, compose.yaml (prod), .env.example, .dockerignore, Makefile, scripts/
   2. Manual form — name (optional), P / F / C, calories (auto-fills from 4P+4C+9F until user edits it), modern **toggle switch** "Save as quick food" (reveals serving label field).
   - Submit → server returns updated `macro_bars` + `entry_list` via `hx-swap-oob`, plus `HX-Trigger: entry-logged` → sheet closes, brief toast with **Undo** (DELETE).
 - **History:** 7-day and 30-day averages vs targets at top; Chart.js charts (daily calories vs target line; protein/fat/carbs as three lines, each with its target as a dashed line) with 14/30/90-day range toggle; below, reverse-chronological day list with mini bars against *that day's* targets, infinite-scroll via `hx-trigger="revealed"`. Tap a day → `/day/{date}` (editable, supports backfill).
-- **Settings:** targets form (calories auto-suggest from macros, overridable) with note "applies from today onward" + list of past target changes; timezone select; link to Quick Foods page (add/edit/delete inline rows, ↑/↓ buttons to reorder).
+- **Settings:** targets form (calories auto-suggest from macros, overridable) with note "applies from today onward" + list of past target changes; timezone select; link to Quick Foods page (add/edit/delete inline rows, listed alphabetically; the log sheet orders quick foods by most recent use, then alphabetically).
 - All mutations are HTMX partial swaps; full page loads only on nav between top-level pages (use `hx-boost` on nav so even those are swap-based).
 - Dark mode + light mode via CSS variables; PWA manifest + icons so it installs full-screen.
 

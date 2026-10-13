@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse
 from app.deps import DB, TZ, Today
 from app.forms import form_values, parse_macro_form, parse_servings, parse_text
 from app.services.entries import create_entry, delete_entry, get_entry, log_quick_food, update_entry
-from app.services.foods import create_quick_food, get_quick_food, list_quick_foods, recent_foods
+from app.services.foods import create_quick_food, get_quick_food, list_quick_foods_by_recent_use, recent_foods
 from app.templating import templates
 from app.views import day_context
 
@@ -44,7 +44,7 @@ def log_sheet(request: Request, db: DB, today: Today, day: str = ""):
     context = {
         "day": parsed,
         "day_value": _day_value(day, parsed),
-        "quick_foods": list_quick_foods(db),
+        "quick_foods": list_quick_foods_by_recent_use(db),
         "recent": recent_foods(db, today),
         "values": {},
         "errors": {},

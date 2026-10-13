@@ -39,15 +39,6 @@ def test_edit_food(client, db):
     assert bad.headers["HX-Retarget"] == f"#food-{food.id}"
 
 
-def test_move_food(client, db):
-    _food(db, "Eggs")
-    oats = _food(db, "Oats")
-    r = client.post(f"/quick-foods/{oats.id}/move?direction=up")
-    assert r.status_code == 200
-    db.expire_all()
-    assert [f.name for f in list_quick_foods(db)] == ["Oats", "Eggs"]
-
-
 def test_delete_food_route_keeps_history(client, db):
     food = _food(db, "Eggs")
     entry = log_quick_food(db, food, day=TODAY)

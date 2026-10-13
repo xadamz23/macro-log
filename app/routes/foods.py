@@ -8,7 +8,6 @@ from app.services.foods import (
     delete_quick_food,
     get_quick_food,
     list_quick_foods,
-    move_quick_food,
     update_quick_food,
 )
 from app.templating import templates
@@ -88,10 +87,3 @@ def remove_food(food_id: int, request: Request, db: DB):
     delete_quick_food(db, _food_or_404(db, food_id))
     return _list(request, db)
 
-
-@router.post("/quick-foods/{food_id}/move", response_class=HTMLResponse)
-def move_food(food_id: int, request: Request, db: DB, direction: str = "up"):
-    if direction not in ("up", "down"):
-        raise HTTPException(status_code=422, detail="direction must be up or down")
-    move_quick_food(db, _food_or_404(db, food_id), direction)
-    return _list(request, db)

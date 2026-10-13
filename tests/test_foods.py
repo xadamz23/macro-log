@@ -5,7 +5,7 @@ from app.services.foods import (
     create_quick_food,
     delete_quick_food,
     list_quick_foods,
-    move_quick_food,
+    list_quick_foods_by_recent_use,
     recent_foods,
     update_quick_food,
 )
@@ -18,21 +18,19 @@ def _food(db, name):
     return create_quick_food(db, name=name, serving_label="", macros=Macros(100, 10, 1, 10))
 
 
-def test_create_appends_in_order(db):
-    names = ["Eggs", "Oats", "Shake"]
-    for n in names:
+def test_list_is_alphabetical_case_insensitive(db):
+    for n in ["oats", "Shake", "Eggs"]:
         _food(db, n)
-    assert [f.name for f in list_quick_foods(db)] == names
+    assert [f.name for f in list_quick_foods(db)] == ["Eggs", "oats", "Shake"]
 
 
-def test_move_up_down_and_edges(db):
-    eggs, oats, shake = (_food(db, n) for n in ["Eggs", "Oats", "Shake"])
-    move_quick_food(db, shake, "up")
-    assert [f.name for f in list_quick_foods(db)] == ["Eggs", "Shake", "Oats"]
-    move_quick_food(db, eggs, "up")      # already first: no-op
-    move_quick_food(db, oats, "down")    # already last: no-op
-    move_quick_food(db, eggs, "down")
-    assert [f.name for f in list_quick_foods(db)] == ["Shake", "Eggs", "Oats"]
+def test_by_recent_use_then_alphabetical(db):
+    eggs, oats, shake, apple, zucchini = (_food(db, n) for n in ["Eggs", "Oats", "Shake", "apple", "Zucchini"])
+    base = datetime(2026, 10, 13, 8, tzinfo=UTC)
+    create_entry(db, day=TODAY, macros=Macros(1), name="Oats", quick_food_id=oats.id, now=base)
+    create_entry(db, day=TODAY, macros=Macros(1), name="Shake", quick_food_id=shake.id, now=base + timedelta(hours=2))
+    create_entry(db, day=TODAY, macros=Macros(1), name="Oats", quick_food_id=oats.id, now=base + timedelta(hours=3))
+    assert [f.name for f in list_quick_foods_by_recent_use(db)] == ["Oats", "Shake", "apple", "Eggs", "Zucchini"]
 
 
 def test_update_quick_food(db):

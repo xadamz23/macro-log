@@ -3,7 +3,7 @@
   {% if foods %}
   <ul class="list">
     {% for food in foods %}
-      {% with first = loop.first, last = loop.last %}{% include "partials/food_row.html" %}{% endwith %}
+      {% include "partials/food_row.html" %}
     {% endfor %}
   </ul>
   {% else %}

@@ -36,7 +36,7 @@ def test_day_totals(db):
 
 
 def test_log_quick_food_scales_and_snapshots(db):
-    food = QuickFood(name="Greek yogurt", serving_label="170 g", calories=100, protein=17, fat=0.7, carbs=6, sort_order=0)
+    food = QuickFood(name="Greek yogurt", serving_label="170 g", calories=100, protein=17, fat=0.7, carbs=6)
     db.add(food)
     db.commit()
     entry = log_quick_food(db, food, day=DAY, servings=2)

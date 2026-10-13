@@ -42,7 +42,6 @@ class QuickFood(MacroColumns, Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100))
     serving_label: Mapped[str] = mapped_column(String(50), default="")
-    sort_order: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class Entry(MacroColumns, Base):

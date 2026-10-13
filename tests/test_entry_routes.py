@@ -90,6 +90,14 @@ def test_log_sheet_lists_quick_and_recent(client, db):
     assert "Save as quick food" in r.text
 
 
+def test_log_sheet_orders_quick_foods_by_recent_use(client, db):
+    create_quick_food(db, name="Apple", serving_label="", macros=Macros(100))
+    yogurt = create_quick_food(db, name="Yogurt", serving_label="", macros=Macros(100))
+    client.post(f"/quick-foods/{yogurt.id}/log", data={"day": TODAY.isoformat(), "servings": "1"})
+    r = client.get(f"/log-sheet?day={TODAY.isoformat()}")
+    assert r.text.index("Yogurt") < r.text.index("Apple")
+
+
 def test_edit_update_delete_entry(client, db):
     entry = create_entry(db, day=TODAY, macros=Macros(100, 5, 5, 5), name="Snack")
     edit = client.get(f"/entries/{entry.id}/edit")

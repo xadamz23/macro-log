@@ -10,7 +10,28 @@ from app.services.macros import Macros
 
 
 def list_quick_foods(db: Session) -> list[QuickFood]:
-    return list(db.scalars(select(QuickFood).order_by(QuickFood.sort_order, QuickFood.id)))
+    return list(db.scalars(select(QuickFood).order_by(func.lower(QuickFood.name), QuickFood.id)))
+
+
+def list_quick_foods_by_recent_use(db: Session) -> list[QuickFood]:
+    """Most recently logged first; never-logged foods after, alphabetically."""
+    last_used = (
+        select(Entry.quick_food_id, func.max(Entry.logged_at).label("last_used"))
+        .where(Entry.quick_food_id.is_not(None))
+        .group_by(Entry.quick_food_id)
+        .subquery()
+    )
+    stmt = (
+        select(QuickFood)
+        .outerjoin(last_used, last_used.c.quick_food_id == QuickFood.id)
+        .order_by(
+            last_used.c.last_used.is_(None),
+            last_used.c.last_used.desc(),
+            func.lower(QuickFood.name),
+            QuickFood.id,
+        )
+    )
+    return list(db.scalars(stmt))
 
 
 def get_quick_food(db: Session, food_id: int) -> QuickFood | None:
@@ -27,8 +48,7 @@ def _apply(food: QuickFood, name: str, serving_label: str, macros: Macros) -> No
 
 
 def create_quick_food(db: Session, *, name: str, serving_label: str, macros: Macros) -> QuickFood:
-    max_order = db.scalar(select(func.max(QuickFood.sort_order)))
-    food = QuickFood(sort_order=(max_order if max_order is not None else -1) + 1)
+    food = QuickFood()
     _apply(food, name, serving_label, macros)
     db.add(food)
     db.commit()
@@ -43,18 +63,6 @@ def update_quick_food(db: Session, food: QuickFood, *, name: str, serving_label:
 
 def delete_quick_food(db: Session, food: QuickFood) -> None:
     db.delete(food)
-    db.commit()
-
-
-def move_quick_food(db: Session, food: QuickFood, direction: str) -> None:
-    foods = list_quick_foods(db)
-    index = next(i for i, f in enumerate(foods) if f.id == food.id)
-    target = index - 1 if direction == "up" else index + 1
-    if not 0 <= target < len(foods):
-        return
-    foods[index], foods[target] = foods[target], foods[index]
-    for order, item in enumerate(foods):
-        item.sort_order = order
     db.commit()
 
 
