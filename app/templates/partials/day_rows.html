@@ -1,0 +1,23 @@
+{% for s in days %}
+<li>
+  <a class="day-row" href="{{ '/' if s.day == today else '/day/' ~ s.day.isoformat() }}">
+    <div class="day-row-head">
+      <strong>{{ s.day|day(today) }}</strong>
+      <span>{{ s.entry_count }} entr{{ "y" if s.entry_count == 1 else "ies" }}</span>
+    </div>
+    <div class="mini-bars">
+      {% for bar in s.bars %}
+      <div class="mini-bar bar-{{ bar.key }}{% if bar.over %} over{% endif %}">
+        <div class="mini-bar-label">{{ bar.consumed|num }}{% if bar.target is not none %}/{{ bar.target|num }}{% endif %}</div>
+        <div class="bar-track"><div class="bar-fill" style="width: {{ bar.pct }}%"></div></div>
+      </div>
+      {% endfor %}
+    </div>
+  </a>
+</li>
+{% endfor %}
+{% if next_before %}
+<li hx-get="/history/days?before={{ next_before.isoformat() }}" hx-trigger="revealed" hx-swap="outerHTML">
+  <p class="empty" style="padding: 12px 0">Loading…</p>
+</li>
+{% endif %}

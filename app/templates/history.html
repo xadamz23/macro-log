@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}History · Macro Log{% endblock %}
+{% block content %}
+<header class="day-header"><h1>History</h1></header>
+
+<section class="card stats">
+  {% for label, avg in [("7-day avg", avg7), ("30-day avg", avg30)] %}
+  <div>
+    <div class="stat-label">{{ label }}</div>
+    {% if avg %}
+    <div class="stat-value">{{ avg.totals.calories }} <small>kcal</small></div>
+    <div class="stat-sub">{% if avg.targets %}target {{ avg.targets.calories }} · {% endif %}P {{ avg.totals.protein|num }} · F {{ avg.totals.fat|num }} · C {{ avg.totals.carbs|num }}</div>
+    <div class="stat-sub">{{ avg.days_logged }} day{{ "s" if avg.days_logged != 1 }} logged</div>
+    {% else %}
+    <div class="stat-sub">No data yet</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>
+
+<section class="card" x-data="historyCharts(30)">
+  <div class="segmented" role="group" aria-label="Chart range">
+    {% for n in [14, 30, 90] %}
+    <button type="button" :class="days === {{ n }} && 'active'" @click="setRange({{ n }})">{{ n }}d</button>
+    {% endfor %}
+  </div>
+  <div class="chart-box"><canvas x-ref="calories" aria-label="Calories per day" role="img"></canvas></div>
+  <div class="chart-box"><canvas x-ref="macros" aria-label="Protein, fat and carbs per day" role="img"></canvas></div>
+</section>
+
+<section class="card">
+  <h2>Days</h2>
+  {% if days %}
+  <ul class="list">{% include "partials/day_rows.html" %}</ul>
+  {% else %}
+  <p class="empty">No days logged yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

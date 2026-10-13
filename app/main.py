@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from app.config import Settings, get_settings
 from app.csrf import install_csrf_guard
 from app.db import make_engine
-from app.routes import entries, foods, pages
+from app.routes import entries, foods, history, pages
 from app.routes import settings as settings_routes
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -32,5 +32,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(entries.router)
     app.include_router(settings_routes.router)
     app.include_router(foods.router)
+    app.include_router(history.router)
 
     return app
