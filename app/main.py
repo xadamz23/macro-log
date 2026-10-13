@@ -25,6 +25,8 @@ def create_app(settings: Settings | None = None, access_verifier: AccessVerifier
     app.state.engine = engine
     app.state.sessionmaker = sessionmaker(engine, expire_on_commit=False)
 
+    if bool(settings.cf_access_team_domain) != bool(settings.cf_access_aud):
+        raise ValueError("Set both CF_ACCESS_TEAM_DOMAIN and CF_ACCESS_AUD, or neither")
     if access_verifier is None and settings.cf_access_team_domain and settings.cf_access_aud:
         access_verifier = AccessVerifier(settings.cf_access_team_domain, settings.cf_access_aud)
     if access_verifier is not None:

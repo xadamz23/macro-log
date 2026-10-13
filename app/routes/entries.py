@@ -33,10 +33,17 @@ def _entry_or_404(db, entry_id: int):
     return entry
 
 
+def _day_value(raw, day: date) -> str:
+    """What the sheet posts back: blank on Today (resolved at request time), else the explicit date."""
+    return day.isoformat() if raw else ""
+
+
 @router.get("/log-sheet", response_class=HTMLResponse)
 def log_sheet(request: Request, db: DB, today: Today, day: str = ""):
+    parsed = _parse_day(day, today)
     context = {
-        "day": _parse_day(day, today),
+        "day": parsed,
+        "day_value": _day_value(day, parsed),
         "quick_foods": list_quick_foods(db),
         "recent": recent_foods(db, today),
         "values": {},
@@ -65,6 +72,7 @@ async def create_entry_route(request: Request, db: DB, tz: TZ, today: Today):
     if errors:
         context = {
             "day": day,
+            "day_value": _day_value(data.get("day"), day),
             "values": {**form.values, "name": name, "serving_label": serving_label, "save_quick": save_quick},
             "errors": errors,
             "prefix": "entry",

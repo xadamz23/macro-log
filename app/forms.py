@@ -1,4 +1,5 @@
 import math
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
@@ -36,6 +37,8 @@ def _number(raw: str, maximum: float) -> float | None:
     """Parse a user-typed number. Blank -> None. Raises ValueError with a message."""
     if raw == "":
         return None
+    if "," in raw and not re.fullmatch(r"\d+,\d{1,2}", raw):
+        raise ValueError("Must be a number")
     try:
         value = float(raw.replace(",", "."))
     except ValueError:

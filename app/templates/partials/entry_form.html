@@ -1,5 +1,5 @@
 <form id="entry-form" class="card stack" hx-post="/entries" hx-swap="none" x-data="macroForm">
-  <input type="hidden" name="day" value="{{ day.isoformat() }}">
+  <input type="hidden" name="day" value="{{ day_value }}">
   {% if errors.form %}<p class="error">{{ errors.form }}</p>{% endif %}
   <div class="field{% if errors.name %} invalid{% endif %}">
     <label for="entry-name">Name (optional)</label>

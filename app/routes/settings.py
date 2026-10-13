@@ -44,8 +44,13 @@ def settings_page(request: Request, db: DB, tz: TZ, today: Today):
 @router.post("/settings/targets", response_class=HTMLResponse)
 async def save_targets(request: Request, db: DB, today: Today):
     form = parse_macro_form(await request.form())
-    if not form.ok:
-        context = _targets_context(db, today, values=form.values, errors=form.errors)
+    errors = dict(form.errors)
+    for key in ("protein", "fat", "carbs"):
+        if not form.values[key]:
+            errors[key] = "Required"
+    if errors:
+        errors.pop("form", None)
+        context = _targets_context(db, today, values=form.values, errors=errors)
         return templates.TemplateResponse(request, "partials/targets_card.html", context, status_code=422)
     set_targets(db, today, form.macros)
     return templates.TemplateResponse(request, "partials/targets_card.html", _targets_context(db, today, saved=True))

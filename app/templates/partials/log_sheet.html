@@ -10,7 +10,7 @@
   {% for item in recent %}
   <div class="qf-tile">
     <button type="button" class="qf-log" hx-post="/entries" hx-swap="none" hx-disabled-elt="this"
-            hx-vals='{{ {"day": day.isoformat(), "name": item.name, "calories": item.macros.calories, "protein": item.macros.protein, "fat": item.macros.fat, "carbs": item.macros.carbs}|tojson }}'>
+            hx-vals='{{ {"day": day_value, "name": item.name, "calories": item.macros.calories, "protein": item.macros.protein, "fat": item.macros.fat, "carbs": item.macros.carbs}|tojson }}'>
       <span class="qf-name">{{ item.name }}</span>
       <span class="qf-meta">{{ item.macros.calories }} kcal · P {{ item.macros.protein|num }}</span>
     </button>

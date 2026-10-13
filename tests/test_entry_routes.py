@@ -113,4 +113,4 @@ def test_edit_update_delete_entry(client, db):
 def test_today_page_has_sheet(client):
     r = client.get("/?log=1")
     assert 'x-data="logSheet(true)"' in r.text
-    assert 'data-url="/log-sheet?day=2026-10-13"' in r.text
+    assert 'data-url="/log-sheet?day="' in r.text

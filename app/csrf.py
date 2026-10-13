@@ -11,8 +11,9 @@ SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 
 def _is_cross_site(request: Request) -> bool:
     fetch_site = request.headers.get("sec-fetch-site")
-    if fetch_site is not None and fetch_site not in ("same-origin", "none"):
-        return True
+    if fetch_site is not None:
+        return fetch_site not in ("same-origin", "none")
+    # Older browsers: fall back to comparing Origin with Host.
     origin = request.headers.get("origin")
     return origin is not None and urlsplit(origin).netloc != request.headers.get("host")
 
