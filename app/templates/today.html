@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ day|day(today) }} · Macro Log{% endblock %}
+{% block content %}
+<header class="day-header">
+  <a class="day-nav" href="/day/{{ prev_day.isoformat() }}" aria-label="Previous day">‹</a>
+  <h1>{{ day|day(today) }}</h1>
+  {% if next_day %}
+  <a class="day-nav" href="{{ '/' if next_day == today else '/day/' ~ next_day.isoformat() }}" aria-label="Next day">›</a>
+  {% else %}
+  <span class="day-nav disabled" aria-hidden="true"></span>
+  {% endif %}
+</header>
+{% include "partials/macro_bars.html" %}
+{% include "partials/entry_list.html" %}
+{% endblock %}

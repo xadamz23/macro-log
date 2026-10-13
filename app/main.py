@@ -1,8 +1,14 @@
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import sessionmaker
 
 from app.config import Settings, get_settings
 from app.db import make_engine
+from app.routes import pages
+
+STATIC_DIR = Path(__file__).parent / "static"
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -17,5 +23,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/healthz")
     def healthz() -> dict:
         return {"ok": True}
+
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+    app.include_router(pages.router)
 
     return app

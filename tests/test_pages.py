@@ -1,0 +1,54 @@
+from datetime import date
+
+from app.services.entries import create_entry
+from app.services.macros import Macros
+from app.services.targets import set_targets
+from tests.conftest import TODAY
+
+
+def test_today_without_targets_shows_hint(client):
+    r = client.get("/")
+    assert r.status_code == 200
+    assert "Today" in r.text
+    assert "set your targets" in r.text
+    assert 'id="bars"' in r.text
+
+
+def test_today_shows_progress_against_targets(client, db):
+    set_targets(db, TODAY, Macros(2000, 150, 70, 200))
+    create_entry(db, day=TODAY, macros=Macros(500, 40, 10, 50), name="Oats")
+    r = client.get("/")
+    assert "<strong>500</strong> / 2000 kcal" in r.text
+    assert "1500 kcal left" in r.text
+    assert "Oats" in r.text
+    assert "set your targets" not in r.text
+
+
+def test_over_target_is_marked(client, db):
+    set_targets(db, TODAY, Macros(2000, 150, 70, 200))
+    create_entry(db, day=TODAY, macros=Macros(2300, 40, 10, 50))
+    r = client.get("/")
+    assert "300 kcal over" in r.text
+    assert "bar-calories over" in r.text
+
+
+def test_past_day_page_shows_that_day(client, db):
+    create_entry(db, day=date(2026, 10, 10), macros=Macros(700), name="Pasta")
+    create_entry(db, day=TODAY, macros=Macros(100), name="Apple")
+    r = client.get("/day/2026-10-10")
+    assert r.status_code == 200
+    assert "Pasta" in r.text and "Apple" not in r.text
+    assert 'href="/day/2026-10-09"' in r.text
+    assert 'href="/day/2026-10-11"' in r.text
+
+
+def test_today_and_future_day_redirect_home(client):
+    for path in ("/day/2026-10-13", "/day/2026-12-01"):
+        r = client.get(path, follow_redirects=False)
+        assert r.status_code == 303
+        assert r.headers["location"] == "/"
+
+
+def test_static_assets_served(client):
+    assert client.get("/static/css/app.css").status_code == 200
+    assert client.get("/static/vendor/htmx.min.js").status_code == 200

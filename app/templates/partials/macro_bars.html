@@ -1,0 +1,17 @@
+<section id="bars" class="card bars"{% if oob %} hx-swap-oob="true"{% endif %}>
+  {% if not has_targets %}<p class="hint">No targets yet — <a href="/settings">set your targets</a>.</p>{% endif %}
+  {% for bar in bars %}
+  <div class="bar bar-{{ bar.key }}{% if bar.over %} over{% endif %}">
+    <div class="bar-head">
+      <span class="bar-label">{{ bar.label }}</span>
+      <span class="bar-value"><strong>{{ bar.consumed|num }}</strong>{% if bar.target is not none %} / {{ bar.target|num }}{% endif %} {{ bar.unit }}</span>
+    </div>
+    <div class="bar-track" role="progressbar" aria-label="{{ bar.label }}" aria-valuemin="0" aria-valuemax="{{ bar.target or 0 }}" aria-valuenow="{{ bar.consumed }}">
+      <div class="bar-fill" style="width: {{ bar.pct }}%"></div>
+    </div>
+    {% if bar.target is not none %}
+    <div class="bar-foot">{% if bar.over %}{{ (0 - bar.remaining)|num }} {{ bar.unit }} over{% else %}{{ bar.remaining|num }} {{ bar.unit }} left{% endif %}</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>

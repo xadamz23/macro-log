@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="htmx-config" content='{"responseHandling":[{"code":"204","swap":false},{"code":"[23]..","swap":true},{"code":"422","swap":true},{"code":"[45]..","swap":false,"error":true}]}'>
+  <title>{% block title %}Macro Log{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+  <script src="/static/vendor/htmx.min.js" defer></script>
+  <script src="/static/vendor/chart.umd.js" defer></script>
+  <script src="/static/js/app.js" defer></script>
+  <script src="/static/vendor/alpine.min.js" defer></script>
+</head>
+<body hx-boost="true">
+  <main class="page">{% block content %}{% endblock %}</main>
+  {% block overlay %}{% endblock %}
+  <div id="toast" class="toast-slot"></div>
+  <nav class="bottom-nav" x-data>
+    <a href="/" class="nav-item{{ ' active' if nav == 'today' }}">{{ icon("today") }}<span>Today</span></a>
+    <a href="/history" class="nav-item{{ ' active' if nav == 'history' }}">{{ icon("history") }}<span>History</span></a>
+    {% block log_button %}<a href="/?log=1" class="log-btn" aria-label="Log food">{{ icon("plus") }}</a>{% endblock %}
+    <a href="/settings/foods" class="nav-item{{ ' active' if nav == 'foods' }}">{{ icon("foods") }}<span>Foods</span></a>
+    <a href="/settings" class="nav-item{{ ' active' if nav == 'settings' }}">{{ icon("settings") }}<span>Settings</span></a>
+  </nav>
+</body>
+</html>

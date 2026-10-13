@@ -1,0 +1,10 @@
+<section id="entries" class="card entries"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <h2>Entries</h2>
+  {% if entries %}
+  <ul class="entry-list">
+    {% for entry in entries %}{% include "partials/entry_row.html" %}{% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty">Nothing logged yet.</p>
+  {% endif %}
+</section>
