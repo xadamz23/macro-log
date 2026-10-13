@@ -142,7 +142,7 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1p
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   font: inherit; font-weight: 600;
-  padding: 10px 16px;
+  padding: 7px 16px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--surface-2);
