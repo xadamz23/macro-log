@@ -31,5 +31,7 @@ make down
 
 ## Cloudflare
 
-Put the hostname behind a Cloudflare Access application. Optionally set `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD`
-so the app rejects any request that didn't pass through Access (`/healthz` stays open for health checks).
+Put the hostname behind a Cloudflare Access application. The app port is published on `127.0.0.1` only (`APP_BIND`),
+so run `cloudflared` on the same host. Recommended: also set `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` so the app
+rejects any request that didn't pass through Access (`/healthz` stays open for health checks); this is required if you
+ever publish the port beyond localhost.
