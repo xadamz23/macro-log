@@ -17,6 +17,12 @@ document.addEventListener("htmx:sendError", () => {
   showToast("Network error, check your connection", true);
 });
 
+// Native date picker in the day header; an empty value means the picker was cleared.
+function jumpToDay(value, today) {
+  if (!value) return;
+  window.location.assign(value >= today ? "/" : `/day/${value}`);
+}
+
 document.addEventListener("alpine:init", () => {
   // Calories follow 4P + 4C + 9F until the user types their own number.
   Alpine.data("macroForm", () => ({
@@ -39,6 +45,18 @@ document.addEventListener("alpine:init", () => {
       if (this.caloriesTouched) return;
       const calories = this.computed();
       this.field("calories").value = calories ? calories : "";
+    },
+  }));
+
+  // Filters the log sheet's tiles by name; names arrive lowercased from the template.
+  Alpine.data("foodSearch", () => ({
+    q: "",
+    matches(name) {
+      const query = this.q.trim().toLowerCase();
+      return !query || name.includes(query);
+    },
+    any(names) {
+      return names.some((name) => this.matches(name));
     },
   }));
 

@@ -122,3 +122,17 @@ def test_today_page_has_sheet(client):
     r = client.get("/?log=1")
     assert 'x-data="logSheet(true)"' in r.text
     assert 'data-url="/log-sheet?day="' in r.text
+
+
+def test_log_sheet_search_filters_tiles_by_name(client, db):
+    create_quick_food(db, name="Greek Yogurt", serving_label="", macros=Macros(100))
+    create_entry(db, day=TODAY, macros=Macros(300, 30, 10, 20), name="Chicken Bowl")
+    r = client.get(f"/log-sheet?day={TODAY.isoformat()}")
+    assert 'type="search"' in r.text
+    assert 'data-name="greek yogurt"' in r.text
+    assert 'data-name="chicken bowl"' in r.text
+
+
+def test_log_sheet_without_foods_has_no_search(client):
+    r = client.get(f"/log-sheet?day={TODAY.isoformat()}")
+    assert 'type="search"' not in r.text

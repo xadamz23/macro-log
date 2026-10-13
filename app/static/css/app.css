@@ -90,6 +90,16 @@ h2 {
 }
 .day-nav:hover { background: var(--surface-2); }
 .day-nav.disabled { visibility: hidden; }
+.day-title { position: relative; margin: 0; }
+.day-title-caret { font-size: 0.6em; color: var(--muted); vertical-align: middle; }
+/* Invisible native date input stretched over the title so a tap opens the OS picker. */
+.date-jump {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  opacity: 0; border: 0; padding: 0;
+  cursor: pointer;
+}
+.date-jump::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; }
 
 /* Progress bars */
 .bars { display: grid; gap: 16px; }
@@ -126,7 +136,7 @@ h2 {
 .stack { display: grid; gap: 12px; }
 .field { display: grid; gap: 4px; min-width: 0; }
 .field label { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
-input[type="text"], select {
+input[type="text"], input[type="search"], select {
   width: 100%;
   font: inherit; font-size: 16px;
   padding: 10px 12px;
@@ -228,6 +238,8 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1p
 }
 
 /* Quick food tiles */
+.food-search { margin-bottom: 12px; }
+.food-search-empty { margin-bottom: 16px; }
 .qf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 16px; }
 .qf-tile { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
 .qf-log {

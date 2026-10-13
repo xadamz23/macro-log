@@ -1,21 +1,33 @@
-{% if quick_foods %}
-<div class="section-label">Quick foods</div>
-<div class="qf-grid">
-  {% for food in quick_foods %}{% include "partials/quick_food_tile.html" %}{% endfor %}
-</div>
-{% endif %}
-{% if recent %}
-<div class="section-label">Recent</div>
-<div class="qf-grid">
-  {% for item in recent %}
-  <div class="qf-tile">
-    <button type="button" class="qf-log" hx-post="/entries" hx-swap="none" hx-disabled-elt="this"
-            hx-vals='{{ {"day": day_value, "name": item.name, "calories": item.macros.calories, "protein": item.macros.protein, "fat": item.macros.fat, "carbs": item.macros.carbs}|tojson }}'>
-      <span class="qf-name">{{ item.name }}</span>
-      <span class="qf-meta">{{ item.macros.calories }} kcal · P {{ item.macros.protein|num }}</span>
-    </button>
+{% if quick_foods or recent %}
+{% set quick_names = quick_foods|map(attribute="name")|map("lower")|list %}
+{% set recent_names = recent|map(attribute="name")|map("lower")|list %}
+<div x-data="foodSearch">
+  <input type="search" class="food-search" placeholder="Search foods" aria-label="Search foods" autocomplete="off" x-model="q">
+  {% if quick_foods %}
+  <div x-show='any({{ quick_names|tojson }})'>
+    <div class="section-label">Quick foods</div>
+    <div class="qf-grid">
+      {% for food in quick_foods %}{% include "partials/quick_food_tile.html" %}{% endfor %}
+    </div>
   </div>
-  {% endfor %}
+  {% endif %}
+  {% if recent %}
+  <div x-show='any({{ recent_names|tojson }})'>
+    <div class="section-label">Recent</div>
+    <div class="qf-grid">
+      {% for item in recent %}
+      <div class="qf-tile" data-name="{{ item.name|lower }}" x-show="matches($el.dataset.name)">
+        <button type="button" class="qf-log" hx-post="/entries" hx-swap="none" hx-disabled-elt="this"
+                hx-vals='{{ {"day": day_value, "name": item.name, "calories": item.macros.calories, "protein": item.macros.protein, "fat": item.macros.fat, "carbs": item.macros.carbs}|tojson }}'>
+          <span class="qf-name">{{ item.name }}</span>
+          <span class="qf-meta">{{ item.macros.calories }} kcal · P {{ item.macros.protein|num }}</span>
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  <p class="empty food-search-empty" x-show='!any({{ (quick_names + recent_names)|tojson }})' x-cloak>No matches.</p>
 </div>
 {% endif %}
 <div class="section-label">Add manually</div>

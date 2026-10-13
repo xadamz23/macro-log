@@ -62,3 +62,11 @@ def test_entries_listed_newest_first(client, db):
     create_entry(db, day=TODAY, macros=Macros(100), name="Lunch", now=datetime(2026, 10, 13, 18, tzinfo=UTC))
     html = client.get("/").text
     assert html.index("Dinner") < html.index("Lunch") < html.index("Breakfast")
+
+
+def test_day_header_has_date_jump(client):
+    r = client.get("/")
+    assert 'class="date-jump"' in r.text
+    assert 'max="2026-10-13"' in r.text and 'value="2026-10-13"' in r.text
+    r = client.get("/day/2026-10-01")
+    assert 'value="2026-10-01"' in r.text and 'max="2026-10-13"' in r.text

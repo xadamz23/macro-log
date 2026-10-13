@@ -1,4 +1,4 @@
-<div class="qf-tile" x-data="{ more: false }">
+<div class="qf-tile" x-data="{ more: false }" data-name="{{ food.name|lower }}" x-show="matches($el.dataset.name)">
   <button type="button" class="qf-log" hx-post="/quick-foods/{{ food.id }}/log" hx-swap="none" hx-disabled-elt="this"
           hx-vals='{{ {"day": day_value, "servings": "1"}|tojson }}'>
     <span class="qf-name">{{ food.name }}</span>
