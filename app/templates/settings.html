@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Settings · Macro Log{% endblock %}
+{% block content %}
+<header class="day-header"><h1>Settings</h1></header>
+{% with values = targets["values"], errors = targets.errors, saved = targets.saved, history = targets.history, today = targets.today, prefix = targets.prefix %}
+  {% include "partials/targets_card.html" %}
+{% endwith %}
+{% with timezone = tzctx.timezone, timezones = tzctx.timezones, today = tzctx.today, error = tzctx.error, saved = tzctx.saved %}
+  {% include "partials/timezone_card.html" %}
+{% endwith %}
+<a class="card row-link" href="/settings/foods"><span>Quick foods</span><span aria-hidden="true">›</span></a>
+{% endblock %}

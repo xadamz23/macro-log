@@ -1,0 +1,25 @@
+<section id="targets-card" class="card">
+  <h2>Daily targets</h2>
+  <form class="stack" hx-post="/settings/targets" hx-target="#targets-card" hx-swap="outerHTML" x-data="macroForm">
+    {% if errors.form %}<p class="error">{{ errors.form }}</p>{% endif %}
+    {% include "partials/macro_fields.html" %}
+    <p class="hint">Changes apply from today onward. Past days keep the targets they had.</p>
+    <div class="actions">
+      {% if saved %}<p class="flash">Saved</p>{% endif %}
+      <button class="btn btn-primary" type="submit">Save targets</button>
+    </div>
+  </form>
+  {% if history %}
+  <h2 style="margin-top: 20px">Target history</h2>
+  <ul class="list">
+    {% for t in history %}
+    <li class="row">
+      <div class="row-main">
+        <div class="row-title">From {{ t.effective_date|day(today) }}</div>
+        <div class="row-sub">{{ t.calories }} kcal · P {{ t.protein|num }} · F {{ t.fat|num }} · C {{ t.carbs|num }}</div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>
