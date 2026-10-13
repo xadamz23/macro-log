@@ -1,10 +1,15 @@
+from datetime import date
+
 import pytest
 from fastapi.testclient import TestClient
 
 import app.models  # noqa: F401
 from app.config import Settings
 from app.db import Base
+from app.deps import get_today
 from app.main import create_app
+
+TODAY = date(2026, 10, 13)
 
 
 @pytest.fixture
@@ -22,6 +27,7 @@ def settings(tmp_path):
 def app(settings):
     application = create_app(settings)
     Base.metadata.create_all(application.state.engine)
+    application.dependency_overrides[get_today] = lambda: TODAY
     yield application
     application.state.engine.dispose()
 
