@@ -1,6 +1,6 @@
 {
-  "name": "Macro Log",
-  "short_name": "Macros",
+  "name": "MacroLog",
+  "short_name": "MacroLog",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

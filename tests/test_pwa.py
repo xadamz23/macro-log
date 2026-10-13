@@ -30,3 +30,10 @@ def test_icons_are_pngs_of_right_size():
         data = (ICONS / name).read_bytes()
         assert data[:8] == b"\x89PNG\r\n\x1a\n"
         assert struct.unpack(">II", data[16:24]) == (size, size)
+
+
+def test_installed_app_name_is_macrolog(client):
+    data = client.get("/manifest.webmanifest").json()
+    assert data["name"] == "MacroLog"
+    assert data["short_name"] == "MacroLog"
+    assert '<meta name="apple-mobile-web-app-title" content="MacroLog">' in client.get("/").text
