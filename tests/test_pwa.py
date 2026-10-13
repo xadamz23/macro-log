@@ -5,7 +5,7 @@ ICONS = Path("app/static/icons")
 
 
 def test_manifest(client):
-    r = client.get("/static/manifest.webmanifest")
+    r = client.get("/manifest.webmanifest")
     assert r.status_code == 200
     assert r.headers["content-type"].startswith("application/manifest+json")
     data = r.json()
@@ -20,7 +20,9 @@ def test_service_worker_served_at_root(client):
 
 
 def test_base_links_manifest_with_credentials(client):
-    assert 'rel="manifest" href="/static/manifest.webmanifest" crossorigin="use-credentials"' in client.get("/").text
+    html = client.get("/").text
+    assert 'rel="manifest" href="/manifest.webmanifest?v=' in html
+    assert 'crossorigin="use-credentials"' in html
 
 
 def test_icons_are_pngs_of_right_size():

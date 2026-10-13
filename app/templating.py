@@ -4,6 +4,7 @@ from pathlib import Path
 from fastapi.templating import Jinja2Templates
 from markupsafe import Markup
 
+from app.assets import assets
 from app.forms import fmt_num
 from app.services.clock import to_local
 
@@ -43,3 +44,5 @@ templates.env.filters["num"] = fmt_num
 templates.env.filters["day"] = fmt_day
 templates.env.filters["time"] = fmt_time
 templates.env.globals["icon"] = icon
+templates.env.globals["static_url"] = assets.url
+templates.env.globals["asset_version"] = assets.version

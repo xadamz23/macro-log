@@ -1,19 +1,13 @@
-import mimetypes
-from pathlib import Path
-
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import sessionmaker
 
+from app.assets import STATIC_DIR, CachedStaticFiles
 from app.auth import AccessVerifier, install_access_check
 from app.config import Settings, get_settings
 from app.csrf import install_csrf_guard
 from app.db import make_engine
 from app.routes import entries, foods, history, pages
 from app.routes import settings as settings_routes
-
-STATIC_DIR = Path(__file__).parent / "static"
-mimetypes.add_type("application/manifest+json", ".webmanifest")
 
 
 def create_app(settings: Settings | None = None, access_verifier: AccessVerifier | None = None) -> FastAPI:
@@ -37,7 +31,7 @@ def create_app(settings: Settings | None = None, access_verifier: AccessVerifier
         return {"ok": True}
 
     install_csrf_guard(app)
-    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+    app.mount("/static", CachedStaticFiles(directory=STATIC_DIR), name="static")
     app.include_router(pages.router)
     app.include_router(entries.router)
     app.include_router(settings_routes.router)

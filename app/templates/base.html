@@ -5,18 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="htmx-config" content='{"responseHandling":[{"code":"204","swap":false},{"code":"[23]..","swap":true},{"code":"422","swap":true},{"code":"[45]..","swap":false,"error":true}]}'>
   <title>{% block title %}Macro Log{% endblock %}</title>
-  <link rel="stylesheet" href="/static/css/app.css">
-  <link rel="manifest" href="/static/manifest.webmanifest" crossorigin="use-credentials">
-  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="{{ static_url('css/app.css') }}">
+  <link rel="manifest" href="/manifest.webmanifest?v={{ asset_version() }}" crossorigin="use-credentials">
+  <link rel="apple-touch-icon" href="{{ static_url('icons/apple-touch-icon.png') }}">
   <meta name="theme-color" content="#f6f5f2" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Macros">
-  <script src="/static/vendor/htmx.min.js" defer></script>
-  <script src="/static/vendor/chart.umd.js" defer></script>
-  <script src="/static/js/app.js" defer></script>
-  <script src="/static/vendor/alpine.min.js" defer></script>
+  <script src="{{ static_url('vendor/htmx.min.js') }}" defer></script>
+  <script src="{{ static_url('vendor/chart.umd.js') }}" defer></script>
+  <script src="{{ static_url('js/app.js') }}" defer></script>
+  <script src="{{ static_url('vendor/alpine.min.js') }}" defer></script>
 </head>
 <body hx-boost="true">
   <main class="page">{% block content %}{% endblock %}</main>
