@@ -1,7 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
 
+import app.models  # noqa: F401
 from app.config import Settings
+from app.db import Base
 from app.main import create_app
 
 
@@ -19,8 +21,15 @@ def settings(tmp_path):
 @pytest.fixture
 def app(settings):
     application = create_app(settings)
+    Base.metadata.create_all(application.state.engine)
     yield application
     application.state.engine.dispose()
+
+
+@pytest.fixture
+def db(app):
+    with app.state.sessionmaker() as session:
+        yield session
 
 
 @pytest.fixture
