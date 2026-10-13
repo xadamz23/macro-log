@@ -43,14 +43,17 @@ document.addEventListener("alpine:init", () => {
   }));
 
   // Bottom sheet; its body is (re)loaded from the server every time it opens.
+  // htmx.ajax rather than an hx-trigger: after a boosted navigation Alpine can run
+  // init() before htmx has processed the swapped-in nodes, so a trigger would be lost.
   Alpine.data("logSheet", (autoOpen) => ({
     open: false,
     init() {
-      if (autoOpen) this.$nextTick(() => this.show());
+      if (autoOpen) this.show();
     },
     show() {
       this.open = true;
-      htmx.trigger(this.$refs.body, "load-sheet");
+      const body = this.$refs.body;
+      htmx.ajax("GET", body.dataset.url, { target: body, swap: "innerHTML" });
     },
     hide() {
       this.open = false;
