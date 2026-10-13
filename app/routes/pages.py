@@ -1,7 +1,8 @@
 from datetime import date
+from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 
 from app.deps import DB, TZ, Today
 from app.templating import templates
@@ -27,3 +28,11 @@ def day_page(request: Request, day: date, db: DB, tz: TZ, today: Today):
         return RedirectResponse("/", status_code=303)
     context = {**day_context(db, day, today), "tz": tz, "nav": "history", "open_log": False}
     return templates.TemplateResponse(request, "today.html", context)
+
+
+SW_PATH = Path(__file__).resolve().parent.parent / "static" / "sw.js"
+
+
+@router.get("/sw.js", include_in_schema=False)
+def service_worker():
+    return FileResponse(SW_PATH, media_type="application/javascript", headers={"Cache-Control": "no-cache"})

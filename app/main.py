@@ -1,3 +1,4 @@
+import mimetypes
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -12,6 +13,7 @@ from app.routes import entries, foods, history, pages
 from app.routes import settings as settings_routes
 
 STATIC_DIR = Path(__file__).parent / "static"
+mimetypes.add_type("application/manifest+json", ".webmanifest")
 
 
 def create_app(settings: Settings | None = None, access_verifier: AccessVerifier | None = None) -> FastAPI:
