@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.config import Settings, get_settings
 from app.db import make_engine
-from app.routes import pages
+from app.routes import entries, pages
 
 STATIC_DIR = Path(__file__).parent / "static"
 
@@ -26,5 +26,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     app.include_router(pages.router)
+    app.include_router(entries.router)
 
     return app

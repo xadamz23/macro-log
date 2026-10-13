@@ -1,0 +1,16 @@
+<li id="entry-{{ entry.id }}" class="entry-row">
+  <form class="entry-edit stack" hx-put="/entries/{{ entry.id }}" hx-swap="none" x-data="macroForm">
+    {% if errors.form %}<p class="error">{{ errors.form }}</p>{% endif %}
+    <div class="field{% if errors.name %} invalid{% endif %}">
+      <label for="edit-{{ entry.id }}-name">Name</label>
+      <input id="edit-{{ entry.id }}-name" type="text" name="name" maxlength="100" value="{{ values.get('name', '') }}">
+      {% if errors.name %}<span class="error">{{ errors.name }}</span>{% endif %}
+    </div>
+    {% with prefix = "edit-" ~ entry.id %}{% include "partials/macro_fields.html" %}{% endwith %}
+    <div class="actions">
+      <button type="button" class="btn btn-danger" hx-delete="/entries/{{ entry.id }}" hx-swap="none" hx-confirm="Delete this entry?">Delete</button>
+      <button type="button" class="btn" hx-get="/entries/{{ entry.id }}/row" hx-target="#entry-{{ entry.id }}" hx-swap="outerHTML">Cancel</button>
+      <button type="submit" class="btn btn-primary">Save</button>
+    </div>
+  </form>
+</li>

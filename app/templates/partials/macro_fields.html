@@ -1,0 +1,11 @@
+<div class="grid-4">
+  {% for key, label in [("protein", "Protein g"), ("fat", "Fat g"), ("carbs", "Carbs g"), ("calories", "kcal")] %}
+  <div class="field{% if errors[key] %} invalid{% endif %}">
+    <label for="{{ prefix }}-{{ key }}">{{ label }}</label>
+    <input id="{{ prefix }}-{{ key }}" name="{{ key }}" type="text" inputmode="decimal" autocomplete="off"
+           value="{{ values.get(key, '') }}"
+           {% if key == "calories" %}placeholder="auto" @input="caloriesTouched = true"{% else %}placeholder="0" @input="autofill()"{% endif %}>
+    {% if errors[key] %}<span class="error">{{ errors[key] }}</span>{% endif %}
+  </div>
+  {% endfor %}
+</div>

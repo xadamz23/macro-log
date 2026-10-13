@@ -1,0 +1,22 @@
+{% if quick_foods %}
+<div class="section-label">Quick foods</div>
+<div class="qf-grid">
+  {% for food in quick_foods %}{% include "partials/quick_food_tile.html" %}{% endfor %}
+</div>
+{% endif %}
+{% if recent %}
+<div class="section-label">Recent</div>
+<div class="qf-grid">
+  {% for item in recent %}
+  <div class="qf-tile">
+    <button type="button" class="qf-log" hx-post="/entries" hx-swap="none" hx-disabled-elt="this"
+            hx-vals='{{ {"day": day.isoformat(), "name": item.name, "calories": item.macros.calories, "protein": item.macros.protein, "fat": item.macros.fat, "carbs": item.macros.carbs}|tojson }}'>
+      <span class="qf-name">{{ item.name }}</span>
+      <span class="qf-meta">{{ item.macros.calories }} kcal · P {{ item.macros.protein|num }}</span>
+    </button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+<div class="section-label">Add manually</div>
+{% include "partials/entry_form.html" %}

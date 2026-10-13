@@ -13,3 +13,26 @@
 {% include "partials/macro_bars.html" %}
 {% include "partials/entry_list.html" %}
 {% endblock %}
+
+{% block log_button %}
+<button type="button" class="log-btn" @click="$dispatch('open-log')" aria-label="Log food">{{ icon("plus") }}</button>
+{% endblock %}
+
+{% block overlay %}
+<div x-data="logSheet({{ 'true' if open_log else 'false' }})"
+     @open-log.window="show()" @entry-logged.window="hide()" @keydown.escape.window="hide()">
+  <div class="sheet-backdrop" x-show="open" x-transition.opacity x-cloak @click="hide()"></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Log food" x-show="open" x-cloak
+       x-transition:enter="sheet-anim" x-transition:enter-start="sheet-off"
+       x-transition:leave="sheet-anim" x-transition:leave-end="sheet-off">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <h2>Log food{% if not is_today %} · {{ day|day(today) }}{% endif %}</h2>
+      <button type="button" class="icon-btn" @click="hide()" aria-label="Close">✕</button>
+    </div>
+    <div x-ref="body" hx-get="/log-sheet?day={{ day.isoformat() }}" hx-trigger="load-sheet" hx-swap="innerHTML">
+      <p class="empty">Loading…</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

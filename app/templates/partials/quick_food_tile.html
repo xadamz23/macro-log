@@ -1,0 +1,14 @@
+<div class="qf-tile" x-data="{ more: false }">
+  <button type="button" class="qf-log" hx-post="/quick-foods/{{ food.id }}/log" hx-swap="none" hx-disabled-elt="this"
+          hx-vals='{{ {"day": day.isoformat(), "servings": "1"}|tojson }}'>
+    <span class="qf-name">{{ food.name }}</span>
+    <span class="qf-meta">{% if food.serving_label %}{{ food.serving_label }} · {% endif %}{{ food.calories }} kcal</span>
+  </button>
+  <button type="button" class="qf-more" @click="more = !more" aria-label="Choose servings for {{ food.name }}">⋯</button>
+  <div class="qf-servings" x-show="more" x-cloak>
+    {% for servings, label in [("0.5", "×½"), ("1", "×1"), ("2", "×2")] %}
+    <button type="button" class="btn" hx-post="/quick-foods/{{ food.id }}/log" hx-swap="none" hx-disabled-elt="this"
+            hx-vals='{{ {"day": day.isoformat(), "servings": servings}|tojson }}'>{{ label }}</button>
+    {% endfor %}
+  </div>
+</div>
