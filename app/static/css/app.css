@@ -199,6 +199,10 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1p
   background: var(--surface);
   border-top: 1px solid var(--border);
 }
+/* The keyboard resizes the viewport, so keep the nav from riding on top of it. */
+@media (pointer: coarse) {
+  body:has(:is(input, textarea, select):focus) .bottom-nav { display: none; }
+}
 .nav-item {
   display: grid; justify-items: center; gap: 2px;
   font-size: 0.7rem; color: var(--muted); text-decoration: none;
@@ -221,7 +225,7 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1p
 .sheet-backdrop { position: fixed; inset: 0; z-index: 30; background: rgb(0 0 0 / 0.4); }
 .sheet {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 31;
-  max-height: 88vh; overflow-y: auto; overscroll-behavior: contain;
+  max-height: 88vh; max-height: 88dvh; overflow-y: auto; overscroll-behavior: contain;
   background: var(--bg);
   border-radius: 20px 20px 0 0;
   padding: 8px 16px calc(24px + env(safe-area-inset-bottom));

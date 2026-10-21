@@ -67,6 +67,13 @@ document.addEventListener("alpine:init", () => {
     open: false,
     init() {
       if (autoOpen) this.show();
+      // Returning from another app can leave the focused field hidden under the keyboard.
+      document.addEventListener("visibilitychange", () => {
+        const el = document.activeElement;
+        if (this.open && !document.hidden && this.$root.contains(el)) {
+          setTimeout(() => el.scrollIntoView({ block: "center" }), 300);
+        }
+      });
     },
     show() {
       this.open = true;
