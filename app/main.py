@@ -6,7 +6,7 @@ from app.auth import AccessVerifier, install_access_check
 from app.config import Settings, get_settings
 from app.csrf import install_csrf_guard
 from app.db import make_engine
-from app.routes import entries, foods, history, pages
+from app.routes import entries, foods, history, pages, weight
 from app.routes import settings as settings_routes
 
 
@@ -37,5 +37,6 @@ def create_app(settings: Settings | None = None, access_verifier: AccessVerifier
     app.include_router(settings_routes.router)
     app.include_router(foods.router)
     app.include_router(history.router)
+    app.include_router(weight.router)
 
     return app

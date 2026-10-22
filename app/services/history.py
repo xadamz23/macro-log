@@ -62,6 +62,11 @@ def logged_days(db: Session, *, before: date | None = None, limit: int = 20) -> 
     return _summaries(db, *conditions, limit=limit)
 
 
+def day_totals_between(db: Session, start: date, end: date) -> dict[date, Macros]:
+    """Totals for each logged day in [start, end]; days without entries are absent."""
+    return {s.day: s.totals for s in _summaries(db, Entry.day >= start, Entry.day <= end)}
+
+
 def _mean(items: list[Macros]) -> Macros:
     return reduce(lambda a, b: a + b, items, Macros()).scaled(1 / len(items))
 

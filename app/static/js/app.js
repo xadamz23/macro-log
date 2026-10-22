@@ -157,6 +157,67 @@ document.addEventListener("alpine:init", () => {
       },
     };
   });
+
+  // Weight chart: daily weigh-ins as dots, the smoothed trend as a line.
+  Alpine.data("weightChart", (initialDays) => {
+    let chart = null;
+    return {
+      days: initialDays,
+      init() {
+        this.load();
+      },
+      destroy() {
+        chart?.destroy();
+        chart = null;
+      },
+      setRange(days) {
+        this.days = days;
+        this.load();
+      },
+      async load() {
+        const response = await fetch(`/weight/data?days=${this.days}`);
+        if (!response.ok) {
+          showToast("Couldn't load chart", true);
+          return;
+        }
+        this.render(await response.json());
+      },
+      render(data) {
+        this.destroy();
+        const css = getComputedStyle(document.documentElement);
+        const color = (name) => css.getPropertyValue(name).trim();
+        Chart.defaults.color = color("--muted");
+        Chart.defaults.borderColor = color("--border");
+        const monthDay = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
+        chart = new Chart(this.$refs.chart, {
+          type: "line",
+          data: {
+            labels: data.labels.map((iso) => monthDay.format(new Date(iso))),
+            datasets: [
+              {
+                label: "Daily weigh-in", data: data.weights, showLine: false,
+                pointRadius: 2.5, pointBackgroundColor: color("--muted") + "80", pointBorderWidth: 0,
+              },
+              {
+                label: "Trend", data: data.trend, borderColor: color("--accent"), backgroundColor: color("--accent"),
+                borderWidth: 2.5, pointRadius: 0, tension: 0.3, spanGaps: true,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: "index", intersect: false },
+            plugins: { legend: { labels: { usePointStyle: true, boxWidth: 8, boxHeight: 8 } } },
+            scales: {
+              x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 5 } },
+              y: { grace: 1, ticks: { precision: 0, maxTicksLimit: 6 } },
+            },
+          },
+        });
+      },
+    };
+  });
 });
 
 if ("serviceWorker" in navigator) {

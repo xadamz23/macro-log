@@ -55,3 +55,13 @@ class Entry(MacroColumns, Base):
     quick_food_id: Mapped[int | None] = mapped_column(
         ForeignKey("quick_foods.id", ondelete="SET NULL")
     )
+
+
+class WeighIn(Base):
+    __tablename__ = "weigh_ins"
+    __table_args__ = (UniqueConstraint("day", name="uq_weigh_ins_day"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    day: Mapped[date] = mapped_column(Date)
+    weight: Mapped[float] = mapped_column(Float)
+    logged_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

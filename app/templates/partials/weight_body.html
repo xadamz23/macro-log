@@ -1,0 +1,69 @@
+<div id="weight-body">
+  {% include "partials/weigh_card.html" %}
+  {% if trend is none %}
+  <p class="hint weigh-hint">Weigh yourself each morning after waking, before eating or drinking. Your trend and estimated maintenance calories build up from there.</p>
+  {% else %}
+  <section class="card" x-data="weightChart(90)">
+    <h2>Trend</h2>
+    <div class="trend-top">
+      <div class="trend-val">{{ trend|num }} <small>lb</small></div>
+      <div class="trend-rate">
+        {% if bal.rate is not none %}
+        <strong>{{ bal.rate|signed(2) }} lb/wk</strong><span>over last {{ bal.weeks }} week{{ "s" if bal.weeks != 1 }}</span>
+        {% else %}
+        <strong class="muted">–</strong><span>rate after {{ min_days }} days</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="segmented" role="group" aria-label="Chart range">
+      {% for n, label in [(30, "1M"), (90, "3M"), (180, "6M"), (365, "1Y")] %}
+      <button type="button" :class="days === {{ n }} && 'active'" @click="setRange({{ n }})">{{ label }}</button>
+      {% endfor %}
+    </div>
+    <div class="chart-box"><canvas x-ref="chart" aria-label="Daily weight and trend" role="img"></canvas></div>
+  </section>
+
+  <section class="card">
+    {% if bal.ready %}
+    <h2>Intake vs. trend · last {{ bal.weeks }} week{{ "s" if bal.weeks != 1 }}</h2>
+    <div class="balance">
+      <div><div class="balance-n">{{ bal.avg_calories }}</div><div class="balance-l">avg logged<br>kcal/day</div></div>
+      <div class="balance-op">{{ "+" if bal.deficit >= 0 else "−" }}</div>
+      <div><div class="balance-n">{{ bal.deficit|abs }}</div><div class="balance-l">{{ "deficit" if bal.deficit >= 0 else "surplus" }} from<br>{{ bal.rate|signed(2) }} lb/wk</div></div>
+      <div class="balance-op">=</div>
+      <div class="balance-result"><div class="balance-n">{{ bal.maintenance }}</div><div class="balance-l">your est.<br>maintenance</div></div>
+    </div>
+    <p class="note">{{ bal.days_logged }} of {{ bal.span_days }} days logged. Based on 3,500 kcal per lb, so any habit of under-logging is already built in.</p>
+    {% else %}
+    <h2>Intake vs. trend</h2>
+    <p class="balance-progress">{{ bal.days_both }} of {{ min_days }} days</p>
+    <div class="progress-dots" aria-hidden="true">{% for i in range(min_days) %}<i{% if i < bal.days_both %} class="filled"{% endif %}></i>{% endfor %}</div>
+    <p class="note">Your estimated maintenance calories show up after {{ min_days }} days with both a weigh-in and logged food. Until then, daily water swings would make the estimate unreliable.</p>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2>By week</h2>
+    <table class="weeks">
+      <thead><tr><th>Week of</th><th>Avg kcal</th><th>Protein</th><th>Trend</th></tr></thead>
+      <tbody>
+        {% for w in weeks %}
+        <tr>
+          <td>{{ w.start.strftime("%b %d").replace(" 0", " ") }}</td>
+          <td>{{ w.avg_calories if w.avg_calories is not none else "–" }}</td>
+          <td>{% if w.avg_protein is not none %}{{ w.avg_protein|num }} g{% else %}–{% endif %}</td>
+          <td{% if w.trend_change is not none and w.trend_change|round(1) != 0 %} class="{{ 'down' if w.trend_change < 0 else 'up' }}"{% endif %}>{{ w.trend_change|signed }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>Weigh-ins</h2>
+    <ul class="entry-list">
+      {% for w in weigh_ins %}{% include "partials/weigh_in_row.html" %}{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+</div>

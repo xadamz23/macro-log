@@ -1,0 +1,29 @@
+<section id="weigh-card" class="card weigh">
+  {% if weighed and not editing %}
+  <div class="weigh-done">
+    <div>
+      <div class="weigh-label">Today</div>
+      <div class="weigh-big">{{ weighed.weight|num }} <small>lb</small></div>
+    </div>
+    <div class="weigh-side">
+      {% if prev %}<div class="weigh-sub">{{ (weighed.weight - prev.weight)|signed }} from {{ "yesterday" if prev.day == yesterday else prev.day|day }}</div>{% endif %}
+      <button type="button" class="link-btn" hx-get="/weight/card?edit=1" hx-target="#weigh-card" hx-swap="outerHTML">Edit</button>
+    </div>
+  </div>
+  {% else %}
+  <h2>Today’s weigh-in</h2>
+  <form class="weigh-row" hx-post="/weight" hx-target="#weight-body" hx-swap="outerHTML">
+    <label class="weigh-input{% if error %} invalid{% endif %}">
+      <input name="weight" type="text" inputmode="decimal" autocomplete="off" aria-label="Weight in pounds"
+             value="{{ value }}"{% if prev %} placeholder="{{ prev.weight|num }}"{% endif %} autofocus>
+      <span>lb</span>
+    </label>
+    <button class="btn btn-primary" type="submit">Save</button>
+  </form>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <div class="weigh-foot">
+    {% if prev %}<span class="weigh-sub">{{ "Yesterday" if prev.day == yesterday else "Last" }} {{ prev.weight|num }}{% if prev.day != yesterday %} · {{ prev.day|day(today) }}{% endif %}</span>{% else %}<span></span>{% endif %}
+    {% if editing and weighed %}<button type="button" class="link-btn" hx-get="/weight/card" hx-target="#weigh-card" hx-swap="outerHTML">Cancel</button>{% endif %}
+  </div>
+  {% endif %}
+</section>

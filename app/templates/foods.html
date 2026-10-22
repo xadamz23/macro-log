@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Quick foods · Macro Log{% endblock %}
 {% block content %}
-<header class="day-header"><h1>Quick foods</h1></header>
+<header class="day-header"><h1>Quick foods</h1>{% include "partials/header_menu.html" %}</header>
 {% include "partials/food_add.html" %}
 {% include "partials/food_list.html" %}
 {% endblock %}

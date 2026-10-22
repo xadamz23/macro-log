@@ -9,6 +9,8 @@ from app.services.macros import MACRO_KEYS, Macros, calories_from
 GRAM_MAX = 2000
 CALORIE_MAX = 20000
 GRAM_KEYS = ("protein", "fat", "carbs")
+WEIGHT_MIN = 50
+WEIGHT_MAX = 700
 
 
 def fmt_num(value: float | int | None) -> str:
@@ -16,6 +18,17 @@ def fmt_num(value: float | int | None) -> str:
         return "–"
     rounded = round(float(value), 1)
     return str(int(rounded)) if rounded.is_integer() else f"{rounded:.1f}"
+
+
+def fmt_signed(value: float | int | None, digits: int = 1) -> str:
+    """+1.4 / −0.6 with a real minus sign; zero has no sign."""
+    if value is None:
+        return "–"
+    rounded = round(float(value), digits)
+    if rounded == 0:
+        return "0"
+    text = f"{abs(rounded):.{digits}f}".rstrip("0").rstrip(".")
+    return ("+" if rounded > 0 else "\u2212") + text
 
 
 def form_values(macros: Macros) -> dict[str, str]:
@@ -92,3 +105,16 @@ def parse_servings(raw: str | None) -> float:
     if not math.isfinite(value) or value <= 0 or value > 20:
         raise ValueError("Servings must be between 0 and 20")
     return value
+
+
+def parse_weight(raw: Any) -> tuple[float | None, str | None]:
+    """Pounds, rounded to 0.1. Returns (value, error)."""
+    try:
+        value = _number(str(raw or "").strip(), WEIGHT_MAX)
+    except ValueError:
+        return None, f"Enter a weight between {WEIGHT_MIN} and {WEIGHT_MAX} lb"
+    if value is None:
+        return None, "Enter your weight"
+    if value < WEIGHT_MIN:
+        return None, f"Enter a weight between {WEIGHT_MIN} and {WEIGHT_MAX} lb"
+    return round(value, 1), None

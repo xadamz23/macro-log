@@ -70,3 +70,21 @@ def test_day_header_has_date_jump(client):
     assert 'max="2026-10-13"' in r.text and 'value="2026-10-13"' in r.text
     r = client.get("/day/2026-10-01")
     assert 'value="2026-10-01"' in r.text and 'max="2026-10-13"' in r.text
+
+
+def test_bottom_nav_has_weight_and_menu_has_settings(client):
+    html = client.get("/").text
+    bottom_nav = html.split('class="bottom-nav"')[1]
+    assert 'href="/weight"' in bottom_nav and 'href="/settings"' not in bottom_nav
+    assert 'class="menu-wrap"' in html and 'href="/settings"' in html
+    for path in ("/history", "/settings", "/settings/foods", "/weight"):
+        assert 'class="menu-wrap"' in client.get(path).text
+
+
+def test_today_nudges_until_weighed(client, db):
+    from app.services.weight import save_weigh_in
+
+    assert "No weigh-in yet today" in client.get("/").text
+    assert "No weigh-in yet today" not in client.get("/day/2026-10-10").text
+    save_weigh_in(db, TODAY, 180)
+    assert "No weigh-in yet today" not in client.get("/").text

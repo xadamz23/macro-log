@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Settings · Macro Log{% endblock %}
 {% block content %}
-<header class="day-header"><h1>Settings</h1></header>
+<header class="day-header"><h1>Settings</h1>{% include "partials/header_menu.html" %}</header>
 {% with values = targets["values"], errors = targets.errors, saved = targets.saved, history = targets.history, today = targets.today, prefix = targets.prefix %}
   {% include "partials/targets_card.html" %}
 {% endwith %}

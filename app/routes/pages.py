@@ -5,6 +5,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.assets import assets
 from app.deps import DB, TZ, Today
+from app.services.weight import get_weigh_in
 from app.templating import templates
 from app.views import day_context
 
@@ -18,6 +19,7 @@ def today_page(request: Request, db: DB, tz: TZ, today: Today):
         "tz": tz,
         "nav": "today",
         "open_log": request.query_params.get("log") == "1",
+        "weighed_today": get_weigh_in(db, today) is not None,
     }
     return templates.TemplateResponse(request, "today.html", context)
 

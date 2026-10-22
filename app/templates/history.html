@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}History · Macro Log{% endblock %}
 {% block content %}
-<header class="day-header"><h1>History</h1></header>
+<header class="day-header"><h1>History</h1>{% include "partials/header_menu.html" %}</header>
 
 <section class="card stats">
   {% for label, avg in [("7-day avg", avg7), ("30-day avg", avg30)] %}

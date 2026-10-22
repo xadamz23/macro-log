@@ -1,18 +1,25 @@
 {% extends "base.html" %}
 {% block title %}{{ day|day(today) }} · Macro Log{% endblock %}
 {% block content %}
-<header class="day-header">
-  <a class="day-nav" href="/day/{{ prev_day.isoformat() }}" aria-label="Previous day">‹</a>
-  <h1 class="day-title">{{ day|day(today) }} <span class="day-title-caret" aria-hidden="true">▾</span>
-    <input type="date" class="date-jump" aria-label="Jump to date" max="{{ today.isoformat() }}" value="{{ day.isoformat() }}"
-           x-data @change="jumpToDay($el.value, '{{ today.isoformat() }}')">
-  </h1>
-  {% if next_day %}
-  <a class="day-nav" href="{{ '/' if next_day == today else '/day/' ~ next_day.isoformat() }}" aria-label="Next day">›</a>
-  {% else %}
-  <span class="day-nav disabled" aria-hidden="true"></span>
-  {% endif %}
+<header class="day-header day-header-switch">
+  <span aria-hidden="true"></span>
+  <div class="day-switch">
+    <a class="day-nav" href="/day/{{ prev_day.isoformat() }}" aria-label="Previous day">‹</a>
+    <h1 class="day-title">{{ day|day(today) }} <span class="day-title-caret" aria-hidden="true">▾</span>
+      <input type="date" class="date-jump" aria-label="Jump to date" max="{{ today.isoformat() }}" value="{{ day.isoformat() }}"
+             x-data @change="jumpToDay($el.value, '{{ today.isoformat() }}')">
+    </h1>
+    {% if next_day %}
+    <a class="day-nav" href="{{ '/' if next_day == today else '/day/' ~ next_day.isoformat() }}" aria-label="Next day">›</a>
+    {% else %}
+    <span class="day-nav disabled" aria-hidden="true"></span>
+    {% endif %}
+  </div>
+  {% include "partials/header_menu.html" %}
 </header>
+{% if is_today and not weighed_today %}
+<a class="nudge" href="/weight"><span>No weigh-in yet today</span><strong>Log weight</strong></a>
+{% endif %}
 {% include "partials/macro_bars.html" %}
 {% include "partials/entry_list.html" %}
 {% endblock %}

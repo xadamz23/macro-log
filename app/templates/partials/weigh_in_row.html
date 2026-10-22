@@ -1,0 +1,6 @@
+<li id="weigh-in-{{ w.id }}" class="entry-row">
+  <button type="button" class="entry-main weigh-in-main" hx-get="/weigh-ins/{{ w.id }}/edit" hx-target="#weigh-in-{{ w.id }}" hx-swap="outerHTML">
+    <span>{{ w.day|day(today) }}</span>
+    <span class="weigh-in-value">{{ w.weight|num }} <small>lb</small></span>
+  </button>
+</li>
