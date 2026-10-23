@@ -1,13 +1,24 @@
 #!/bin/bash
 
+if [[ $# -ne 1 ]]; then
+    echo "Usage: $0 <tag>"
+    exit 1
+fi
+
 tag=$1
+image="docker.io/xadamz23/macro-log:$tag"
 
 cd "/home/dockerapps/macrolog"
 
-docker ps | grep macrolog-app | grep -q "$tag"
-if [[ $? -eq 0 ]]; then
+running=$(docker ps --filter 'name=^macrolog-app$' --format '{{.Image}}')
+if [[ "$running" == "$image" ]]; then
     echo "[INFO] app is already running the latest version ($tag)"
     exit 0
+fi
+
+if ! docker network inspect cf-tunnel >/dev/null 2>&1; then
+    echo "[ERROR] docker network cf-tunnel does not exist; run: docker network create cf-tunnel"
+    exit 1
 fi
 
 echo "[INFO] stopping the container"
@@ -16,15 +27,20 @@ docker compose down
 echo "[INFO] updating tag in compose file to $tag"
 
 cat <<EOF > docker-compose.yaml
+name: macrolog
+
 services:
   app:
     container_name: macrolog-app
-    image: docker.io/xadamz23/macro-log:$tag
+    image: $image
     env_file: .env
     environment:
       DATABASE_URL: postgresql+psycopg://\${POSTGRES_USER}:\${POSTGRES_PASSWORD}@db:5432/\${POSTGRES_DB}
-    ports:
-      - "8003:8003"
+    networks:
+      - cf-tunnel
+      - internal
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       db:
         condition: service_healthy
@@ -36,6 +52,10 @@ services:
     env_file: .env
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - internal
+    security_opt:
+      - no-new-privileges:true
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U \$\${POSTGRES_USER} -d \$\${POSTGRES_DB}"]
       interval: 5s
@@ -47,9 +67,11 @@ volumes:
   pgdata:
 
 networks:
-  default:
+  cf-tunnel:
     external: true
-    name: proxied_to_localhost
+  internal:
+    name: macrolog-internal
+    internal: true
 EOF
 
 echo "[INFO] starting the container back up"

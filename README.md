@@ -18,7 +18,7 @@ New migration after changing `app/models.py`: `make revision m="describe change"
 ```bash
 cp .env.example .env   # edit values
 make up                # builds macro-log:local, starts app + postgres
-curl localhost:8003/healthz
+curl localhost:8000/healthz
 make down
 ```
 
@@ -39,7 +39,7 @@ This runs four steps:
 3. Pushes that image to Docker Hub.
 4. SSHes to `root@docker-public.stizzle.org` and runs `/home/dockerapps/macrolog/update-app.sh <tag>`.
 
-`update-app.sh` exits early if `macrolog-app` is already running that tag. Otherwise it stops the stack,
+`update-app.sh` exits early if `macrolog-app` is already running exactly that image tag. Otherwise it stops the stack,
 rewrites `docker-compose.yaml` to pin the new tag, and starts the stack again.
 
 One-time setup:
@@ -51,7 +51,10 @@ One-time setup:
 - On the host:
   - Copy `scripts/update-app.sh` to `/home/dockerapps/macrolog/` and `chmod +x` it.
   - Put a filled-in `.env` next to it (see `.env.example`).
-  - Create the `proxied_to_localhost` Docker network.
+  - Create the shared tunnel network (`docker network create cf-tunnel`) and attach the `cloudflared` container to it.
+
+The generated stack publishes no host ports. `macrolog-app` joins `cf-tunnel`, and `macrolog-db` sits only on the
+internal `macrolog-internal` network. Point the tunnel's public hostname at `http://macrolog-app:8000`.
 
 Edit `update-app.sh` in the repo, then copy it to the host again: the host runs its own copy. It generates the compose
 file itself, so `compose.yaml` in the repo isn't used on the host.
@@ -70,7 +73,7 @@ rejects any request that didn't pass through Access. `/healthz` stays open for h
 
 How much those variables matter depends on the deploy method:
 
-- **Tagged release:** the generated compose file publishes `8003:8003` on all interfaces, so the variables are
-  required.
+- **Tagged release:** the generated compose file publishes no ports; only `cloudflared` on the `cf-tunnel` network
+  can reach the app. The variables are recommended as defence in depth.
 - **Registry `latest`:** `compose.yaml` publishes the port on `127.0.0.1` only (`APP_BIND`), with `cloudflared` on the
   same host. The variables are recommended, and become required if you publish the port beyond localhost.
