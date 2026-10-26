@@ -1,0 +1,24 @@
+<div id="recent-foods">
+{% if recent %}
+  <div x-show='any({{ recent|map(attribute="name")|map("lower")|list|tojson }})'>
+    <div class="section-label">Recent</div>
+    <div class="qf-grid">
+      {% for item in recent %}
+      {% set vals = {"day": day_value, "name": item.name, "calories": item.macros.calories, "protein": item.macros.protein, "fat": item.macros.fat, "carbs": item.macros.carbs} %}
+      <div class="qf-tile" x-data="{ more: false }" data-name="{{ item.name|lower }}" x-show="matches($el.dataset.name)">
+        <button type="button" class="qf-log" hx-post="/entries" hx-swap="none" hx-disabled-elt="this"
+                hx-vals='{{ vals|tojson }}'>
+          <span class="qf-name">{{ item.name }}</span>
+          <span class="qf-meta">{{ item.macros.calories }} kcal · P {{ item.macros.protein|num }}</span>
+        </button>
+        <button type="button" class="qf-more" @click="more = !more" aria-label="Options for {{ item.name }}">⋯</button>
+        <div class="qf-servings" x-show="more" x-cloak>
+          <button type="button" class="btn btn-danger" hx-post="/recent-foods/hide" hx-target="#recent-foods"
+                  hx-swap="outerHTML" hx-disabled-elt="this" hx-vals='{{ vals|tojson }}'>Remove</button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+</div>

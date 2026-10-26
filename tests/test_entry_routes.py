@@ -90,6 +90,23 @@ def test_log_sheet_lists_quick_and_recent(client, db):
     assert "Save as quick food" in r.text
 
 
+def test_hide_recent_food_route(client, db):
+    create_entry(db, day=TODAY, macros=Macros(300, 30, 10, 20), name="Chicken bowl")
+    create_entry(db, day=TODAY, macros=Macros(150, 5, 5, 20), name="Granola bar")
+    sheet = client.get(f"/log-sheet?day={TODAY.isoformat()}")
+    assert 'hx-post="/recent-foods/hide"' in sheet.text and "Options for Chicken bowl" in sheet.text
+
+    r = client.post("/recent-foods/hide", data={"day": TODAY.isoformat(), "name": "Chicken bowl",
+                                                "calories": "300", "protein": "30.0", "fat": "10.0", "carbs": "20.0"})
+    assert r.status_code == 200
+    assert 'id="recent-foods"' in r.text
+    assert "Granola bar" in r.text and "Chicken bowl" not in r.text
+    assert f'"day": "{TODAY.isoformat()}"' in r.text
+    assert "Chicken bowl" not in client.get("/log-sheet").text
+
+    assert client.post("/recent-foods/hide", data={"name": "", "calories": "300"}).status_code == 422
+
+
 def test_log_sheet_orders_quick_foods_by_recent_use(client, db):
     create_quick_food(db, name="Apple", serving_label="", macros=Macros(100))
     yogurt = create_quick_food(db, name="Yogurt", serving_label="", macros=Macros(100))

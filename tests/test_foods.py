@@ -1,9 +1,14 @@
 from datetime import UTC, date, datetime, timedelta
 
+from sqlalchemy import func, select
+
+from app.models import HiddenRecentFood
+
 from app.services.entries import create_entry, get_entry, log_quick_food
 from app.services.foods import (
     create_quick_food,
     delete_quick_food,
+    hide_recent_food,
     list_quick_foods,
     list_quick_foods_by_recent_use,
     recent_foods,
@@ -65,3 +70,20 @@ def test_recent_foods_ranks_excludes_and_limits(db):
     assert [(r.name, r.count) for r in recent] == [("Chicken bowl", 3), ("Granola bar", 1)]
     assert recent[0].macros == Macros(300, 30, 10, 20)
     assert len(recent_foods(db, TODAY, limit=1)) == 1
+
+
+def test_hide_recent_food_until_logged_again(db):
+    noon = datetime(2026, 10, 13, 17, tzinfo=UTC)
+    bowl = Macros(300, 30, 10, 20)
+    create_entry(db, day=TODAY, macros=bowl, name="Chicken bowl", now=noon)
+    create_entry(db, day=TODAY, macros=Macros(150), name="Granola bar", now=noon)
+    create_entry(db, day=TODAY, macros=Macros(999), name="chicken bowl", now=noon)   # same name, other macros
+
+    hide_recent_food(db, name=" chicken BOWL ", macros=bowl, now=noon + timedelta(hours=1))
+    hide_recent_food(db, name="Chicken bowl", macros=bowl, now=noon + timedelta(hours=2))  # bumps, no duplicate
+    assert db.scalar(select(func.count()).select_from(HiddenRecentFood)) == 1
+    assert sorted((r.name, r.macros.calories) for r in recent_foods(db, TODAY)) == [("Granola bar", 150), ("chicken bowl", 999)]
+    assert len(recent_foods(db, TODAY, limit=1)) == 1  # next item fills the slot
+
+    create_entry(db, day=TODAY, macros=bowl, name="Chicken bowl", now=noon + timedelta(hours=3))
+    assert ("Chicken bowl", 2) in [(r.name, r.count) for r in recent_foods(db, TODAY)]

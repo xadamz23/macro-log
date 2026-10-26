@@ -44,6 +44,16 @@ class QuickFood(MacroColumns, Base):
     serving_label: Mapped[str] = mapped_column(String(50), default="")
 
 
+class HiddenRecentFood(MacroColumns, Base):
+    """A Recent-list item the user removed; it reappears once logged again after hidden_at."""
+
+    __tablename__ = "hidden_recent_foods"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name_key: Mapped[str] = mapped_column(String(100))
+    hidden_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class Entry(MacroColumns, Base):
     __tablename__ = "entries"
 

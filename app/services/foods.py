@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import Entry, QuickFood
-from app.services.clock import as_utc
+from app.models import Entry, HiddenRecentFood, QuickFood
+from app.services.clock import as_utc, utcnow
 from app.services.macros import Macros
 
 
@@ -82,6 +82,7 @@ def recent_foods(db: Session, today: date, *, days: int = 30, limit: int = 8) ->
             Entry.day <= today,
         )
     )
+    hidden = {(h.name_key, h.macros): as_utc(h.hidden_at) for h in db.scalars(select(HiddenRecentFood))}
     groups: dict[tuple[str, Macros], dict] = {}
     for entry in entries:
         key = (entry.name.strip().lower(), entry.macros)
@@ -92,5 +93,27 @@ def recent_foods(db: Session, today: date, *, days: int = 30, limit: int = 8) ->
         logged = as_utc(entry.logged_at)
         if group["last"] is None or logged > group["last"]:
             group["last"] = logged
+    groups = {key: g for key, g in groups.items() if key not in hidden or g["last"] > hidden[key]}
     ranked = sorted(groups.items(), key=lambda kv: (kv[1]["count"], kv[1]["last"]), reverse=True)
     return [RecentFood(g["name"], key[1], g["count"]) for key, g in ranked[:limit]]
+
+
+def hide_recent_food(db: Session, *, name: str, macros: Macros, now: datetime | None = None) -> None:
+    """Drop a name+macros pair from Recent until it is logged again."""
+    name_key = name.strip().lower()
+    row = db.scalar(
+        select(HiddenRecentFood).where(
+            HiddenRecentFood.name_key == name_key,
+            HiddenRecentFood.calories == macros.calories,
+            HiddenRecentFood.protein == macros.protein,
+            HiddenRecentFood.fat == macros.fat,
+            HiddenRecentFood.carbs == macros.carbs,
+        )
+    )
+    if row is None:
+        row = HiddenRecentFood(
+            name_key=name_key, calories=macros.calories, protein=macros.protein, fat=macros.fat, carbs=macros.carbs
+        )
+        db.add(row)
+    row.hidden_at = now or utcnow()
+    db.commit()

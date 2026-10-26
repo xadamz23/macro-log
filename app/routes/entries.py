@@ -6,7 +6,13 @@ from fastapi.responses import HTMLResponse
 from app.deps import DB, TZ, Today
 from app.forms import form_values, parse_macro_form, parse_servings, parse_text
 from app.services.entries import create_entry, delete_entry, get_entry, log_quick_food, update_entry
-from app.services.foods import create_quick_food, get_quick_food, list_quick_foods_by_recent_use, recent_foods
+from app.services.foods import (
+    create_quick_food,
+    get_quick_food,
+    hide_recent_food,
+    list_quick_foods_by_recent_use,
+    recent_foods,
+)
 from app.templating import templates
 from app.views import day_context
 
@@ -102,6 +108,19 @@ async def log_quick_food_route(food_id: int, request: Request, db: DB, tz: TZ, t
     day = _parse_day(data.get("day"), today)
     entry = log_quick_food(db, food, day=day, servings=servings)
     return _refresh(request, db, day, today, tz, toast_entry=entry, headers={"HX-Trigger": "entry-logged"})
+
+
+@router.post("/recent-foods/hide", response_class=HTMLResponse)
+async def hide_recent_food_route(request: Request, db: DB, today: Today):
+    data = await request.form()
+    form = parse_macro_form(data)
+    name, name_error = parse_text(data, "name", max_len=100, required=True)
+    if name_error or form.errors:
+        raise HTTPException(status_code=422, detail="Invalid recent food")
+    hide_recent_food(db, name=name, macros=form.macros)
+    day = _parse_day(data.get("day"), today)
+    context = {"recent": recent_foods(db, today), "day_value": _day_value(data.get("day"), day)}
+    return templates.TemplateResponse(request, "partials/recent_foods.html", context)
 
 
 @router.get("/entries/{entry_id}/edit", response_class=HTMLResponse)

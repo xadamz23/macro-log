@@ -11,22 +11,7 @@
     </div>
   </div>
   {% endif %}
-  {% if recent %}
-  <div x-show='any({{ recent_names|tojson }})'>
-    <div class="section-label">Recent</div>
-    <div class="qf-grid">
-      {% for item in recent %}
-      <div class="qf-tile" data-name="{{ item.name|lower }}" x-show="matches($el.dataset.name)">
-        <button type="button" class="qf-log" hx-post="/entries" hx-swap="none" hx-disabled-elt="this"
-                hx-vals='{{ {"day": day_value, "name": item.name, "calories": item.macros.calories, "protein": item.macros.protein, "fat": item.macros.fat, "carbs": item.macros.carbs}|tojson }}'>
-          <span class="qf-name">{{ item.name }}</span>
-          <span class="qf-meta">{{ item.macros.calories }} kcal · P {{ item.macros.protein|num }}</span>
-        </button>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
+  {% include "partials/recent_foods.html" %}
   <p class="empty food-search-empty" x-show='!any({{ (quick_names + recent_names)|tojson }})' x-cloak>No matches.</p>
 </div>
 {% endif %}
