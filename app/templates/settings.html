@@ -8,5 +8,8 @@
 {% with timezone = tzctx.timezone, timezones = tzctx.timezones, today = tzctx.today, error = tzctx.error, saved = tzctx.saved %}
   {% include "partials/timezone_card.html" %}
 {% endwith %}
+{% with values = profile["values"], errors = profile.errors, saved = profile.saved, sexes = profile.sexes, goals = profile.goals, training_placeholder = profile.training_placeholder %}
+  {% include "partials/profile_card.html" %}
+{% endwith %}
 <a class="card row-link" href="/settings/foods"><span>Quick foods</span><span aria-hidden="true">›</span></a>
 {% endblock %}

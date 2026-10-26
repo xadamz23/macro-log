@@ -178,7 +178,7 @@ h2 {
 .stack { display: grid; gap: 12px; }
 .field { display: grid; gap: 4px; min-width: 0; }
 .field label { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
-input[type="text"], input[type="search"], select {
+input[type="text"], input[type="search"], select, textarea {
   width: 100%;
   font: inherit; font-size: 16px;
   padding: 10px 12px;
@@ -187,10 +187,12 @@ input[type="text"], input[type="search"], select {
   background: var(--surface);
   color: var(--text);
 }
-input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+textarea { resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .error { color: var(--danger); font-size: 0.8rem; margin: 0; }
-.field.invalid input { border-color: var(--danger); }
+.field.invalid :is(input, textarea) { border-color: var(--danger); }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   font: inherit; font-weight: 600;

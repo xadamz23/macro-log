@@ -3,6 +3,7 @@ from datetime import date
 from app.services.app_settings import get_timezone
 from app.services.entries import create_entry
 from app.services.macros import Macros
+from app.services.profile import get_profile
 from app.services.targets import resolve_targets, set_targets
 from tests.conftest import TODAY
 
@@ -44,3 +45,25 @@ def test_timezone_save_and_reject(client, db):
     r = client.post("/settings/timezone", data={"timezone": "Mars/Olympus"})
     assert r.status_code == 422
     assert "Unknown timezone" in r.text
+
+
+def test_save_profile(client, db):
+    data = {"sex": "male", "birth_year": "1990", "height_ft": "5", "height_inches": "10",
+            "goal": "lean_bulk", "training": " PPL 4 h/week ", "activity": "", "notes": ""}
+    r = client.post("/settings/profile", data=data)
+    assert r.status_code == 200
+    assert "Saved" in r.text
+    profile = get_profile(db)
+    assert (profile.sex, profile.birth_year, profile.height_in, profile.goal) == ("male", 1990, 70, "lean_bulk")
+    assert (profile.training, profile.activity) == ("PPL 4 h/week", None)
+    page = client.get("/settings").text
+    assert 'value="1990"' in page
+    assert '<option value="lean_bulk" selected>' in page
+
+
+def test_save_profile_invalid(client, db):
+    r = client.post("/settings/profile", data={"birth_year": "1850", "height_ft": "12"})
+    assert r.status_code == 422
+    assert "Enter a year between 1900 and 2026" in r.text
+    assert "Enter a height between 4 ft and 8 ft" in r.text
+    assert get_profile(db).is_empty()

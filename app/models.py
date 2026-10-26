@@ -65,3 +65,16 @@ class WeighIn(Base):
     day: Mapped[date] = mapped_column(Date)
     weight: Mapped[float] = mapped_column(Float)
     logged_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class Profile(Base):
+    __tablename__ = "profile"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    sex: Mapped[str | None] = mapped_column(String(10))
+    birth_year: Mapped[int | None] = mapped_column(Integer)
+    height_in: Mapped[float | None] = mapped_column(Float)
+    goal: Mapped[str | None] = mapped_column(String(20))
+    training: Mapped[str | None] = mapped_column(String(500))
+    activity: Mapped[str | None] = mapped_column(String(500))
+    notes: Mapped[str | None] = mapped_column(String(2000))

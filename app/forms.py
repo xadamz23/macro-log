@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from app.services.macros import MACRO_KEYS, Macros, calories_from
+from app.services.profile import GOALS, SEXES, ProfileData
 
 GRAM_MAX = 2000
 CALORIE_MAX = 20000
@@ -118,3 +119,75 @@ def parse_weight(raw: Any) -> tuple[float | None, str | None]:
     if value < WEIGHT_MIN:
         return None, f"Enter a weight between {WEIGHT_MIN} and {WEIGHT_MAX} lb"
     return round(value, 1), None
+
+
+HEIGHT_MIN_IN = 48
+HEIGHT_MAX_IN = 96
+PROFILE_TEXT_MAX = {"training": 500, "activity": 500, "notes": 2000}
+
+
+@dataclass
+class ProfileForm:
+    values: dict[str, str]
+    errors: dict[str, str]
+    data: ProfileData | None
+
+
+def profile_form_values(profile: ProfileData) -> dict[str, str]:
+    feet = inches = ""
+    if profile.height_in is not None:
+        feet, rest = divmod(round(profile.height_in), 12)
+        feet, inches = str(feet), str(rest)
+    return {
+        "sex": profile.sex or "",
+        "birth_year": "" if profile.birth_year is None else str(profile.birth_year),
+        "height_ft": feet,
+        "height_inches": inches,
+        "goal": profile.goal or "",
+        "training": profile.training or "",
+        "activity": profile.activity or "",
+        "notes": profile.notes or "",
+    }
+
+
+def parse_profile_form(data: Mapping[str, Any], *, current_year: int) -> ProfileForm:
+    keys = ("sex", "birth_year", "height_ft", "height_inches", "goal", *PROFILE_TEXT_MAX)
+    values = {key: str(data.get(key) or "").strip() for key in keys}
+    errors: dict[str, str] = {}
+
+    sex = values["sex"] if values["sex"] in SEXES else None
+    goal = values["goal"] if values["goal"] in GOALS else None
+
+    birth_year = None
+    if values["birth_year"]:
+        if values["birth_year"].isdigit() and 1900 <= int(values["birth_year"]) <= current_year:
+            birth_year = int(values["birth_year"])
+        else:
+            errors["birth_year"] = f"Enter a year between 1900 and {current_year}"
+
+    height_in = None
+    if values["height_ft"] or values["height_inches"]:
+        try:
+            feet = _number(values["height_ft"], 9) or 0.0
+            inches = _number(values["height_inches"], 11.9) or 0.0
+            height_in = round(feet * 12 + inches, 1)
+            if not HEIGHT_MIN_IN <= height_in <= HEIGHT_MAX_IN:
+                raise ValueError
+        except ValueError:
+            errors["height"] = "Enter a height between 4 ft and 8 ft"
+            height_in = None
+
+    for key, max_len in PROFILE_TEXT_MAX.items():
+        if len(values[key]) > max_len:
+            errors[key] = f"Max {max_len} characters"
+
+    if errors:
+        return ProfileForm(values, errors, None)
+    profile = ProfileData(
+        sex=sex,
+        birth_year=birth_year,
+        height_in=height_in,
+        goal=goal,
+        **{key: values[key] or None for key in PROFILE_TEXT_MAX},
+    )
+    return ProfileForm(values, {}, profile)

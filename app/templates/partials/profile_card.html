@@ -1,0 +1,50 @@
+<section id="profile-card" class="card">
+  <h2>About me</h2>
+  <form class="stack" hx-post="/settings/profile" hx-target="#profile-card" hx-swap="outerHTML">
+    <p class="hint">Included in data exports so an AI has context. Every field is optional.</p>
+    <div class="grid-2">
+      <div class="field">
+        <label for="profile-sex">Sex</label>
+        <select id="profile-sex" name="sex">
+          <option value="">–</option>
+          {% for key, label in sexes.items() %}<option value="{{ key }}"{% if values.sex == key %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="field{% if errors.birth_year %} invalid{% endif %}">
+        <label for="profile-birth-year">Birth year</label>
+        <input id="profile-birth-year" name="birth_year" type="text" inputmode="numeric" autocomplete="off" value="{{ values.birth_year }}">
+        {% if errors.birth_year %}<span class="error">{{ errors.birth_year }}</span>{% endif %}
+      </div>
+    </div>
+    <div class="field{% if errors.height %} invalid{% endif %}">
+      <label for="profile-height-ft">Height (ft, in)</label>
+      <div class="grid-2">
+        <input id="profile-height-ft" name="height_ft" type="text" inputmode="numeric" autocomplete="off" placeholder="ft" aria-label="Height feet" value="{{ values.height_ft }}">
+        <input name="height_inches" type="text" inputmode="decimal" autocomplete="off" placeholder="in" aria-label="Height inches" value="{{ values.height_inches }}">
+      </div>
+      {% if errors.height %}<span class="error">{{ errors.height }}</span>{% endif %}
+    </div>
+    <div class="field">
+      <label for="profile-goal">Goal</label>
+      <select id="profile-goal" name="goal">
+        <option value="">–</option>
+        {% for key, label in goals.items() %}<option value="{{ key }}"{% if values.goal == key %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    {% for key, label, placeholder, rows in [
+      ("training", "Training", training_placeholder, 2),
+      ("activity", "Activity outside training", "e.g. desk job, ~8k steps/day", 2),
+      ("notes", "Notes for the AI", "Anything else: injuries, training age, recent changes…", 3),
+    ] %}
+    <div class="field{% if errors[key] %} invalid{% endif %}">
+      <label for="profile-{{ key }}">{{ label }}</label>
+      <textarea id="profile-{{ key }}" name="{{ key }}" rows="{{ rows }}" placeholder="{{ placeholder }}">{{ values[key] }}</textarea>
+      {% if errors[key] %}<span class="error">{{ errors[key] }}</span>{% endif %}
+    </div>
+    {% endfor %}
+    <div class="actions">
+      {% if saved %}<p class="flash">Saved</p>{% endif %}
+      <button class="btn btn-primary" type="submit">Save</button>
+    </div>
+  </form>
+</section>

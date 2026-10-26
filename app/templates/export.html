@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Export · Macro Log{% endblock %}
+{% block content %}
+<header class="day-header"><h1>Export</h1>{% include "partials/header_menu.html" %}</header>
+<section class="card">
+  <h2>Download for AI analysis</h2>
+  <form class="stack" method="get" action="/export/download" hx-boost="false">
+    <p class="hint">A zip containing your daily totals, every logged item, your target history, and a <code>prompt.md</code> that explains the data and what to look for. Upload the whole zip to an AI chat, or upload the files from inside it.</p>
+    {% if profile_empty %}
+    <p class="hint">Tip: fill in <a href="/settings#profile-card">About me</a> first so the AI knows your age, height, goal, and training.</p>
+    {% endif %}
+    <div class="field">
+      <label for="export-range">Range</label>
+      <select id="export-range" name="range">
+        {% for key, label in ranges %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <p class="hint">Ends yesterday, since today's log isn't finished.</p>
+    <div class="actions">
+      <button class="btn btn-primary" type="submit">Download zip</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

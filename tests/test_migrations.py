@@ -19,7 +19,7 @@ def test_upgrade_creates_tables(tmp_path):
     _upgrade(url)
     engine = make_engine(url)
     tables = set(inspect(engine).get_table_names())
-    assert {"app_settings", "targets", "quick_foods", "entries", "weigh_ins"} <= tables
+    assert {"app_settings", "targets", "quick_foods", "entries", "weigh_ins", "profile"} <= tables
     engine.dispose()
 
 

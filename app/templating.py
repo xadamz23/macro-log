@@ -18,6 +18,7 @@ _ICONS = {
     "settings": '<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/>'
     '<circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
     "weight": '<path d="M5 7h14l1.5 13h-17z"/><path d="M9 7a3 3 0 0 1 6 0"/><path d="m12 12.5 1.8-2"/>',
+    "export": '<path d="M12 4v11M7 10l5 5 5-5M4 20h16"/>',
     "menu": '<path d="M4 7h16M4 12h16M4 17h16"/>',
 }
 

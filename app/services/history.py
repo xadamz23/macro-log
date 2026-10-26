@@ -62,9 +62,14 @@ def logged_days(db: Session, *, before: date | None = None, limit: int = 20) -> 
     return _summaries(db, *conditions, limit=limit)
 
 
+def summaries_between(db: Session, start: date, end: date) -> list[DaySummary]:
+    """Each logged day in [start, end], newest first; days without entries are absent."""
+    return _summaries(db, Entry.day >= start, Entry.day <= end)
+
+
 def day_totals_between(db: Session, start: date, end: date) -> dict[date, Macros]:
     """Totals for each logged day in [start, end]; days without entries are absent."""
-    return {s.day: s.totals for s in _summaries(db, Entry.day >= start, Entry.day <= end)}
+    return {s.day: s.totals for s in summaries_between(db, start, end)}
 
 
 def _mean(items: list[Macros]) -> Macros:

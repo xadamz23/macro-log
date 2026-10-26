@@ -4,9 +4,10 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
 from app.deps import DB, TZ, Today
-from app.forms import form_values, parse_macro_form
+from app.forms import form_values, parse_macro_form, parse_profile_form, profile_form_values
 from app.services.app_settings import set_timezone
 from app.services.clock import timezone_choices, today_in
+from app.services.profile import GOALS, SEXES, TRAINING_PLACEHOLDER, get_profile, save_profile
 from app.services.targets import resolve_targets, set_targets, target_history
 from app.templating import templates
 
@@ -31,12 +32,24 @@ def _tz_context(tz: str, today: date, *, error=None, saved=False) -> dict:
     return {"timezone": tz, "timezones": timezone_choices(), "today": today, "error": error, "saved": saved}
 
 
+def _profile_context(db, *, values=None, errors=None, saved=False) -> dict:
+    return {
+        "values": profile_form_values(get_profile(db)) if values is None else values,
+        "errors": errors or {},
+        "saved": saved,
+        "sexes": SEXES,
+        "goals": GOALS,
+        "training_placeholder": TRAINING_PLACEHOLDER,
+    }
+
+
 @router.get("/settings", response_class=HTMLResponse)
 def settings_page(request: Request, db: DB, tz: TZ, today: Today):
     context = {
         "nav": "settings",
         "targets": _targets_context(db, today),
         "tzctx": _tz_context(tz, today),
+        "profile": _profile_context(db),
     }
     return templates.TemplateResponse(request, "settings.html", context)
 
@@ -66,3 +79,13 @@ async def save_timezone(request: Request, db: DB, tz: TZ, today: Today):
         return templates.TemplateResponse(request, "partials/timezone_card.html", context, status_code=422)
     context = _tz_context(name, today_in(name), saved=True)
     return templates.TemplateResponse(request, "partials/timezone_card.html", context)
+
+
+@router.post("/settings/profile", response_class=HTMLResponse)
+async def save_profile_route(request: Request, db: DB, today: Today):
+    form = parse_profile_form(await request.form(), current_year=today.year)
+    if form.errors:
+        context = _profile_context(db, values=form.values, errors=form.errors)
+        return templates.TemplateResponse(request, "partials/profile_card.html", context, status_code=422)
+    save_profile(db, form.data)
+    return templates.TemplateResponse(request, "partials/profile_card.html", _profile_context(db, saved=True))
