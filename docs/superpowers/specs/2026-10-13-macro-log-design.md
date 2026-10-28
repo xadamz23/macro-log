@@ -68,7 +68,7 @@ Dockerfile, compose.yaml (prod), .env.example, .dockerignore, Makefile, scripts/
 ## Auth / Cloudflare
 - Primary protection is Cloudflare Access in front of the hostname.
 - If `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` are set, middleware validates `Cf-Access-Jwt-Assertion` (RS256, JWKS from `https://<team>.cloudflareaccess.com/cdn-cgi/access/certs`, cached) and 403s otherwise; `/healthz` exempt. Unset in dev → disabled.
-- Uvicorn runs with `--proxy-headers --forwarded-allow-ips='*'`.
+- Uvicorn runs with `--no-proxy-headers`; the app applies forwarded headers itself, after recording the real TCP peer for the access check.
 
 ## Dev workflow
 - `uv sync` → `uv run alembic upgrade head` → `uv run uvicorn app.main:app --reload`. Makefile targets: `dev`, `test`, `migrate`, `revision`, `build`, `deploy`.

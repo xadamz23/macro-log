@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     app_tz: str = "UTC"
     cf_access_team_domain: str | None = None
     cf_access_aud: str | None = None
+    # Container name of this app's Tailscale sidecar; its tailnet users pass the access check without an Access token
+    tailnet_proxy_host: str | None = None
 
 
 @lru_cache

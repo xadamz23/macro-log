@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from sqlalchemy.orm import sessionmaker
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.assets import STATIC_DIR, CachedStaticFiles
-from app.auth import AccessVerifier, install_access_check
+from app.auth import AccessVerifier, RecordPeer, TailnetProxy, install_access_check
 from app.config import Settings, get_settings
 from app.csrf import install_csrf_guard
 from app.db import make_engine
@@ -10,7 +11,11 @@ from app.routes import entries, export, foods, history, pages, weight
 from app.routes import settings as settings_routes
 
 
-def create_app(settings: Settings | None = None, access_verifier: AccessVerifier | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    access_verifier: AccessVerifier | None = None,
+    tailnet_proxy: TailnetProxy | None = None,
+) -> FastAPI:
     settings = settings or get_settings()
     engine = make_engine(settings.database_url)
 
@@ -23,8 +28,10 @@ def create_app(settings: Settings | None = None, access_verifier: AccessVerifier
         raise ValueError("Set both CF_ACCESS_TEAM_DOMAIN and CF_ACCESS_AUD, or neither")
     if access_verifier is None and settings.cf_access_team_domain and settings.cf_access_aud:
         access_verifier = AccessVerifier(settings.cf_access_team_domain, settings.cf_access_aud)
+    if tailnet_proxy is None and settings.tailnet_proxy_host:
+        tailnet_proxy = TailnetProxy(settings.tailnet_proxy_host)
     if access_verifier is not None:
-        install_access_check(app, access_verifier)
+        install_access_check(app, access_verifier, tailnet_proxy)
 
     @app.get("/healthz")
     def healthz() -> dict:
@@ -40,4 +47,8 @@ def create_app(settings: Settings | None = None, access_verifier: AccessVerifier
     app.include_router(weight.router)
     app.include_router(export.router)
 
+    # Forwarded headers are applied here rather than by uvicorn (see docker/entrypoint.sh), so RecordPeer can keep
+    # the real TCP peer for the access check. Last added runs first.
+    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
+    app.add_middleware(RecordPeer)
     return app

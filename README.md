@@ -77,3 +77,11 @@ How much those variables matter depends on the deploy method:
   can reach the app. The variables are recommended as defence in depth.
 - **Registry `latest`:** `compose.yaml` publishes the port on `127.0.0.1` only (`APP_BIND`), with `cloudflared` on the
   same host. The variables are recommended, and become required if you publish the port beyond localhost.
+
+## Tailscale
+
+A Tailscale sidecar container running `tailscale serve` (proxying to `http://macrolog-app:8000`) can serve the app on
+the tailnet. Those requests carry no Access token, so set `TAILNET_PROXY_HOST` to the sidecar's container name (e.g.
+`macrolog-ts`). A request then also passes the access check when its TCP peer is that container and it has the
+`Tailscale-User-Login` header that `tailscale serve` adds for tailnet users. The header alone isn't trusted, because
+other containers on the network could send it.
