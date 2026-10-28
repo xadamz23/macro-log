@@ -133,6 +133,13 @@ def test_unresolvable_proxy_forbidden(settings):
     application.state.engine.dispose()
 
 
+def test_proxy_name_shared_by_another_container_forbidden(settings):
+    application = _behind_tailnet_proxy(settings, ["testclient", "172.21.0.99"])
+    with TestClient(application) as c:
+        assert c.get("/settings", headers=TAILNET_USER).status_code == 403
+    application.state.engine.dispose()
+
+
 def test_proxy_lookup_is_cached_briefly():
     calls = []
     now = [0.0]

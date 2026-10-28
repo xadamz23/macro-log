@@ -49,9 +49,11 @@ class TailnetProxy:
         if now >= self._expires:
             resolve = self.resolve or socket.gethostbyname_ex
             try:
-                self._ips = frozenset(resolve(self.host)[2])
+                ips = frozenset(resolve(self.host)[2])
             except OSError:
-                self._ips = frozenset()
+                ips = frozenset()
+            # More than one address means another container shares the name (a Docker network alias); trust neither.
+            self._ips = ips if len(ips) == 1 else frozenset()
             self._expires = now + self.ttl
         return ip in self._ips
 
