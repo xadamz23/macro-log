@@ -9,6 +9,8 @@
   <meta name="htmx-config" content='{"responseHandling":[{"code":"204","swap":false},{"code":"[23]..","swap":true},{"code":"422","swap":true},{"code":"[45]..","swap":false,"error":true}]}'>
   <title>{% block title %}Macro Log{% endblock %}</title>
   <link rel="stylesheet" href="{{ static_url('css/app.css') }}">
+  {# TEMP: ring size toggle. Set before paint so the + doesn't jump. #}
+  <script>try { document.documentElement.dataset.ring = localStorage.getItem("ring") || "44"; } catch (e) {}</script>
   <link rel="manifest" href="/manifest.webmanifest?v={{ asset_version() }}" crossorigin="use-credentials">
   <link rel="icon" href="{{ static_url('icons/favicon.svg') }}" type="image/svg+xml">
   <link rel="icon" href="{{ static_url('icons/favicon-32.png') }}" type="image/png" sizes="32x32">
@@ -27,10 +29,14 @@
   <main class="page">{% block content %}{% endblock %}</main>
   {% block overlay %}{% endblock %}
   <div id="toast" class="toast-slot"></div>
+  {# TEMP: ring size toggle. #}
+  <button type="button" class="ring-toggle glass-strong is-popover" x-data="{ size: document.documentElement.dataset.ring || '44' }"
+          @click="size = size === '44' ? '48' : '44'; document.documentElement.dataset.ring = size; try { localStorage.setItem('ring', size) } catch (e) {}"
+          x-text="'+ ring ' + size + 'px'"></button>
   <nav class="bottom-nav glass-strong" aria-label="Main" x-data>
     {{ nav_item("today", "/", "Today") }}
     {{ nav_item("history", "/history", "History") }}
-    {% block log_button %}<a href="/?log=1" class="log-btn accent" aria-label="Log food">{{ icon("plus") }}</a>{% endblock %}
+    {% block log_button %}<a href="/?log=1" class="log-btn" aria-label="Log food">{{ icon("plus") }}</a>{% endblock %}
     {{ nav_item("foods", "/settings/foods", "Foods") }}
     {{ nav_item("weight", "/weight", "Weight") }}
   </nav>

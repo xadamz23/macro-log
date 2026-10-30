@@ -308,9 +308,9 @@ textarea { resize: vertical; }
 .toggle input:focus-visible + .toggle-track { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Bottom nav: a glass panel floating clear of the screen edges (and the home indicator),
-   no wider than the page. The + is an accent disc raised out of it, ringed in the bar's
-   tint so it reads as sitting in the bar. Rounded corners rather than pill ends, so the
-   ends don't curve in beside the outer items. */
+   no wider than the page. The + is a flat accent ring in the bar: an outline rather than a fill, so it
+   doesn't read as a second current-page pill. Rounded corners rather than pill ends, so the ends don't
+   curve in beside the outer items. */
 .bottom-nav {
   position: fixed; z-index: 20;
   left: max(calc(8px + env(safe-area-inset-left)), calc(50% - 304px));
@@ -339,18 +339,27 @@ textarea { resize: vertical; }
 .nav-item:active .nav-icon { background: var(--hover); }
 .nav-item svg { width: 22px; height: 22px; }
 .log-btn {
+  --log-size: 44px;
   justify-self: center;
-  width: 60px; height: 60px; margin-top: -24px;
+  width: var(--log-size); height: var(--log-size);
   display: grid; place-items: center;
   border-radius: 50%;
-  border: 0;
-  outline: 5px solid rgb(var(--chrome) / 0.55);
+  border: 1.5px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  background: transparent;
+  color: var(--accent);
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
-/* The ring above is an outline, so focus needs its own. */
-.log-btn:focus-visible { outline: 3px solid var(--accent); }
-.log-btn:active { transform: scale(0.96); }
-.log-btn svg { width: 28px; height: 28px; }
+.log-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.log-btn:active { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.log-btn svg { width: 22px; height: 22px; }
+/* TEMP: ring size toggle (44 vs 48). Remove with the toggle in base.html once a size is picked. */
+html[data-ring="48"] .log-btn { --log-size: 48px; }
+.ring-toggle {
+  position: fixed; z-index: 40; top: calc(8px + env(safe-area-inset-top)); left: 8px;
+  padding: 6px 12px; border-radius: 999px;
+  font: inherit; font-size: 0.8rem; font-weight: 600; color: var(--text);
+}
 
 /* Bottom sheet */
 .sheet-backdrop { position: fixed; inset: 0; z-index: 30; background: rgb(2 4 8 / 0.55); }
