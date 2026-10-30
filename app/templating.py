@@ -20,6 +20,10 @@ _ICONS = {
     "weight": '<path d="M5 7h14l1.5 13h-17z"/><path d="M9 7a3 3 0 0 1 6 0"/><path d="m12 12.5 1.8-2"/>',
     "export": '<path d="M12 4v11M7 10l5 5 5-5M4 20h16"/>',
     "menu": '<path d="M4 7h16M4 12h16M4 17h16"/>',
+    "camera": '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/>'
+    '<circle cx="12" cy="13" r="3.5"/>',
+    "image": '<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>',
+    "share": '<path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>',
 }
 
 

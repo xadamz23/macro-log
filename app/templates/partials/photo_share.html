@@ -1,0 +1,60 @@
+<button type="button" class="photo-row glass" x-show="supported && !step" x-cloak @click="step = 'pick'">
+  <span class="photo-ico">{{ icon("camera") }}</span>
+  <span class="photo-row-text">
+    <span class="row-title">Ask AI from a photo</span>
+    <span class="row-sub">Snap your plate, send it to your AI app for macros</span>
+  </span>
+</button>
+
+<div class="stack" x-show="step" x-cloak>
+  <div class="photo-head">
+    <button type="button" class="icon-btn btn-glass" @click="back()" aria-label="Back">‹</button>
+    <div class="section-label">Share photo to AI</div>
+  </div>
+
+  <div class="stack" x-show="step === 'pick'">
+    <p class="hint">Get the whole plate in frame, with a fork beside it for scale.</p>
+    <div class="photo-picks">
+      <button type="button" class="photo-pick glass" @click="$refs.camera.click()">
+        <span class="photo-ico">{{ icon("camera") }}</span>
+        <span class="row-title">Take a photo</span>
+        <span class="row-sub">Opens the camera</span>
+      </button>
+      <button type="button" class="photo-pick glass" @click="$refs.library.click()">
+        <span class="photo-ico">{{ icon("image") }}</span>
+        <span class="row-title">Choose from your photos</span>
+        <span class="row-sub">Pick one you took</span>
+      </button>
+    </div>
+    <input type="file" accept="image/*" capture="environment" class="photo-file" x-ref="camera" tabindex="-1" aria-hidden="true" @change="choose($event)">
+    <input type="file" accept="image/*" class="photo-file" x-ref="library" tabindex="-1" aria-hidden="true" @change="choose($event)">
+  </div>
+
+  <div class="stack" x-show="step === 'preview'">
+    <div class="photo-shot">
+      <img :src="url" alt="Your food photo">
+      <button type="button" class="btn btn-glass photo-retake" @click="step = 'pick'">Retake</button>
+    </div>
+    <div class="field">
+      <label for="photo-what">What is it?</label>
+      <input class="glass-input" id="photo-what" type="text" autocomplete="off" x-model="what"
+             placeholder="e.g. chicken burrito bowl with rice and guac">
+    </div>
+    <label class="toggle">
+      <span>There's a fork in the photo for scale</span>
+      <input type="checkbox" x-model="fork">
+      <span class="toggle-track" aria-hidden="true"></span>
+    </label>
+    <div class="stack">
+      <button type="button" class="photo-link" @click="showPrompt = !showPrompt" :aria-expanded="showPrompt"
+              x-text="showPrompt ? 'Hide prompt' : 'Show prompt'"></button>
+      <div class="field" x-show="showPrompt">
+        <label for="photo-prompt">Prompt sent with the photo</label>
+        <textarea class="glass-input photo-prompt" id="photo-prompt" rows="11" x-model="prompt" @input="edited = true"></textarea>
+        <button type="button" class="photo-link" x-show="edited" @click="resetPrompt()">Reset prompt</button>
+      </div>
+    </div>
+    <button type="button" class="btn accent btn-block" @click="share()">{{ icon("share") }} Share to AI app</button>
+    <p class="hint photo-note">The prompt is copied too, in case your app keeps only the photo.</p>
+  </div>
+</div>

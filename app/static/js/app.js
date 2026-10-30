@@ -60,6 +60,81 @@ document.addEventListener("alpine:init", () => {
     },
   }));
 
+  // Log sheet's "Ask AI from a photo": camera or library → preview → the OS share sheet, with a macros prompt.
+  // share() runs from the Share tap rather than the picker's change event, because iOS wants a fresh tap for it.
+  // Offered only on touch devices that can share files.
+  Alpine.data("photoShare", () => ({
+    supported: false,
+    step: null,
+    file: null,
+    url: "",
+    what: "",
+    fork: true,
+    prompt: "",
+    edited: false,
+    showPrompt: false,
+    init() {
+      const probe = new File([""], "probe.jpg", { type: "image/jpeg" });
+      this.supported = matchMedia("(pointer: coarse)").matches && !!navigator.canShare?.({ files: [probe] });
+      this.prompt = this.buildPrompt();
+      this.$watch("what", () => this.syncPrompt());
+      this.$watch("fork", () => this.syncPrompt());
+    },
+    destroy() {
+      if (this.url) URL.revokeObjectURL(this.url);
+    },
+    buildPrompt() {
+      const what = this.what.trim();
+      const intro = [
+        "Estimate the macros for the food in this photo.",
+        this.fork ? "There's a regular dinner fork in the shot for scale." : "",
+        what ? `The food is: ${what}.` : "",
+      ].filter(Boolean).join(" ");
+      return `${intro}
+
+Reply with only the combined totals for everything in the photo, no per-item breakdown, in exactly this format:
+
+### Protein: __ g
+### Fat: __ g
+### Carbs: __ g
+### Kcal: __
+
+Then one short line with the portion size you assumed. Nothing else.`;
+    },
+    syncPrompt() {
+      if (!this.edited) this.prompt = this.buildPrompt();
+    },
+    resetPrompt() {
+      this.edited = false;
+      this.prompt = this.buildPrompt();
+    },
+    choose(event) {
+      const file = event.target.files[0];
+      event.target.value = "";
+      if (!file) return;
+      if (this.url) URL.revokeObjectURL(this.url);
+      this.file = file;
+      this.url = URL.createObjectURL(file);
+      this.step = "preview";
+    },
+    back() {
+      this.step = this.step === "preview" ? "pick" : null;
+    },
+    async share() {
+      // Some apps keep the photo and drop the text, so the prompt goes on the clipboard as well. Both calls start
+      // in the same tick: awaiting the copy first can cost share() the tap it needs.
+      navigator.clipboard?.writeText(this.prompt).then(
+        () => showToast("Prompt copied. Paste it if your app drops it."),
+        () => {},
+      );
+      try {
+        await navigator.share({ files: [this.file], text: this.prompt });
+      } catch (err) {
+        if (err.name !== "AbortError") showToast("Couldn't open the share sheet", true);
+      }
+    },
+  }));
+
   // Bottom sheet; its body is (re)loaded from the server every time it opens.
   // htmx.ajax rather than an hx-trigger: after a boosted navigation Alpine can run
   // init() before htmx has processed the swapped-in nodes, so a trigger would be lost.
