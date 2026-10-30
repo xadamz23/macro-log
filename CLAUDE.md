@@ -24,6 +24,9 @@ Tailwind or build step, so a new class works as soon as it's in that file.
   - `.pill-radio`: radio groups as pills: `<label class="pill-radio"><input type="radio" …>Label</label>` inside a
     `.pills` row with `role="radiogroup"`.
   - `.glass-card`: hover lift for grid cards; off under `prefers-reduced-motion` and on touch.
+  - Don't stack backdrop blurs: `.glass` inside a `.glass-strong` panel has its blur turned off. Each blurred element
+    is re-blurred every frame while its container moves or scrolls, and a dozen of them in the log sheet made it
+    stutter on phones. Nested glass on an already-blurred tint looks the same without it.
 - **Range/filter tabs:** `.segmented.glass` holding buttons; the active one gets `accent` (via Alpine `:class`).
 - **Bottom nav** floats clear of the screen edges and is no wider than the page column. Mark the current item with
   `aria-current="page"` (the `nav_item` macro in `base.html` does this); don't add an `active` class.

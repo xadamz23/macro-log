@@ -62,6 +62,9 @@ a { color: var(--accent); }
 }
 /* Popovers (menu, toasts) sit over text, which would show through at 60%. */
 .glass-strong.is-popover { background: rgb(var(--chrome) / 0.92); }
+/* Glass inside chrome (tiles and the form in the log sheet) sits on an already-blurred tint, so its own blur adds
+   nothing you can see, but redoing it for every tile on every frame made the sheet stutter as it slid and scrolled. */
+.glass-strong .glass { backdrop-filter: none; }
 .glass-chip {
   display: inline-flex; align-items: center;
   padding: 1px 8px;
