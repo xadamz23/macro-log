@@ -30,7 +30,9 @@
 }
 
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+/* Reserve the scrollbar's space on every page, so the column and the fixed nav (centred on the viewport) don't
+   jump sideways when switching between a page that scrolls and one that doesn't. */
+html { -webkit-text-size-adjust: 100%; scrollbar-gutter: stable; }
 body {
   margin: 0;
   background: var(--bg);
