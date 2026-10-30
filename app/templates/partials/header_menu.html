@@ -1,7 +1,7 @@
 <div class="menu-wrap" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
   <button type="button" class="menu-btn" :class="open && 'on'" @click="open = !open"
           aria-label="Menu" aria-haspopup="true" :aria-expanded="open">{{ icon("menu") }}</button>
-  <nav class="menu" x-show="open" x-cloak x-transition.opacity>
+  <nav class="menu glass-strong is-popover" x-show="open" x-cloak x-transition.opacity>
     <a href="/settings"{% if nav == 'settings' %} class="active" aria-current="page"{% endif %}>{{ icon("settings") }}<span>Settings</span></a>
     <a href="/export"{% if nav == 'export' %} class="active" aria-current="page"{% endif %}>{{ icon("export") }}<span>Export</span></a>
   </nav>

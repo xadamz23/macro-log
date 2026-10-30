@@ -1,4 +1,4 @@
-<div class="qf-tile" x-data="{ more: false }" data-name="{{ food.name|lower }}" x-show="matches($el.dataset.name)">
+<div class="qf-tile glass glass-card" x-data="{ more: false }" data-name="{{ food.name|lower }}" x-show="matches($el.dataset.name)">
   <button type="button" class="qf-log" hx-post="/quick-foods/{{ food.id }}/log" hx-swap="none" hx-disabled-elt="this"
           hx-vals='{{ {"day": day_value, "servings": "1"}|tojson }}'>
     <span class="qf-name">{{ food.name }}</span>
@@ -7,7 +7,7 @@
   <button type="button" class="qf-more" @click="more = !more" aria-label="Choose servings for {{ food.name }}">⋯</button>
   <div class="qf-servings" x-show="more" x-cloak>
     {% for servings, label in [("0.5", "×½"), ("1", "×1"), ("2", "×2")] %}
-    <button type="button" class="btn" hx-post="/quick-foods/{{ food.id }}/log" hx-swap="none" hx-disabled-elt="this"
+    <button type="button" class="btn btn-glass" hx-post="/quick-foods/{{ food.id }}/log" hx-swap="none" hx-disabled-elt="this"
             hx-vals='{{ {"day": day_value, "servings": servings}|tojson }}'>{{ label }}</button>
     {% endfor %}
   </div>

@@ -3,6 +3,6 @@
     <div class="row-title">{{ food.name }}{% if food.serving_label %} <span class="row-sub">· {{ food.serving_label }}</span>{% endif %}</div>
     <div class="row-sub">{{ food.calories }} kcal · P {{ food.protein|num }} · F {{ food.fat|num }} · C {{ food.carbs|num }}</div>
   </div>
-  <button type="button" class="icon-btn" aria-label="Edit {{ food.name }}"
+  <button type="button" class="icon-btn btn-glass" aria-label="Edit {{ food.name }}"
           hx-get="/quick-foods/{{ food.id }}/edit" hx-target="#food-{{ food.id }}" hx-swap="outerHTML">✎</button>
 </li>

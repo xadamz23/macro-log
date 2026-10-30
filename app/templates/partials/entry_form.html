@@ -1,9 +1,9 @@
-<form id="entry-form" class="card stack" hx-post="/entries" hx-swap="none" x-data="macroForm">
+<form id="entry-form" class="card glass stack" hx-post="/entries" hx-swap="none" x-data="macroForm">
   <input type="hidden" name="day" value="{{ day_value }}">
   {% if errors.form %}<p class="error">{{ errors.form }}</p>{% endif %}
   <div class="field{% if errors.name %} invalid{% endif %}">
     <label for="entry-name">Name (optional)</label>
-    <input id="entry-name" type="text" name="name" maxlength="100" autocomplete="off" value="{{ values.get('name', '') }}">
+    <input class="glass-input" id="entry-name" type="text" name="name" maxlength="100" autocomplete="off" value="{{ values.get('name', '') }}">
     {% if errors.name %}<span class="error">{{ errors.name }}</span>{% endif %}
   </div>
   {% include "partials/macro_fields.html" %}
@@ -15,9 +15,9 @@
     </label>
     <div class="field{% if errors.serving_label %} invalid{% endif %}" x-show="save" x-cloak>
       <label for="entry-serving">Serving label</label>
-      <input id="entry-serving" type="text" name="serving_label" maxlength="50" placeholder="e.g. 1 cup, 170 g" value="{{ values.get('serving_label', '') }}">
+      <input class="glass-input" id="entry-serving" type="text" name="serving_label" maxlength="50" placeholder="e.g. 1 cup, 170 g" value="{{ values.get('serving_label', '') }}">
       {% if errors.serving_label %}<span class="error">{{ errors.serving_label }}</span>{% endif %}
     </div>
   </div>
-  <button class="btn btn-primary btn-block" type="submit">Log it</button>
+  <button class="btn accent btn-block" type="submit">Log it</button>
 </form>

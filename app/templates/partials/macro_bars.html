@@ -1,4 +1,4 @@
-<section id="bars" class="card bars"{% if oob %} hx-swap-oob="true"{% endif %}>
+<section id="bars" class="card glass bars"{% if oob %} hx-swap-oob="true"{% endif %}>
   {% if not has_targets %}<p class="hint">No targets yet — <a href="/settings">set your targets</a>.</p>{% endif %}
   {% for bar in bars %}
   <div class="bar bar-{{ bar.key }}{% if bar.over %} over{% endif %}">

@@ -3,7 +3,7 @@
   {% if trend is none %}
   <p class="hint weigh-hint">Weigh yourself each morning after waking, before eating or drinking. Your trend and estimated maintenance calories build up from there.</p>
   {% else %}
-  <section class="card" x-data="weightChart(90)">
+  <section class="card glass" x-data="weightChart(90)">
     <h2>Trend</h2>
     <div class="trend-top">
       <div class="trend-val">{{ trend|num }} <small>lb</small></div>
@@ -15,15 +15,15 @@
         {% endif %}
       </div>
     </div>
-    <div class="segmented" role="group" aria-label="Chart range">
+    <div class="segmented glass" role="group" aria-label="Chart range">
       {% for n, label in [(30, "1M"), (90, "3M"), (180, "6M"), (365, "1Y")] %}
-      <button type="button" :class="days === {{ n }} && 'active'" @click="setRange({{ n }})">{{ label }}</button>
+      <button type="button" :class="days === {{ n }} && 'accent'" @click="setRange({{ n }})">{{ label }}</button>
       {% endfor %}
     </div>
     <div class="chart-box"><canvas x-ref="chart" aria-label="Daily weight and trend" role="img"></canvas></div>
   </section>
 
-  <section class="card">
+  <section class="card glass">
     {% if bal.ready %}
     <h2>Intake vs. trend · last {{ bal.weeks }} week{{ "s" if bal.weeks != 1 }}</h2>
     <div class="balance">
@@ -42,7 +42,7 @@
     {% endif %}
   </section>
 
-  <section class="card">
+  <section class="card glass">
     <h2>By week</h2>
     <table class="weeks">
       <thead><tr><th>Week of</th><th>Avg kcal</th><th>Protein</th><th>Trend</th></tr></thead>
@@ -59,7 +59,7 @@
     </table>
   </section>
 
-  <section class="card">
+  <section class="card glass">
     <h2>Weigh-ins</h2>
     <ul class="entry-list">
       {% for w in weigh_ins %}{% include "partials/weigh_in_row.html" %}{% endfor %}

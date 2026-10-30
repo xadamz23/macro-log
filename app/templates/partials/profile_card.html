@@ -1,32 +1,33 @@
-<section id="profile-card" class="card">
+<section id="profile-card" class="card glass">
   <h2>About me</h2>
   <form class="stack" hx-post="/settings/profile" hx-target="#profile-card" hx-swap="outerHTML">
     <p class="hint">Included in data exports so an AI has context. Every field is optional.</p>
-    <div class="grid-2">
-      <div class="field">
-        <label for="profile-sex">Sex</label>
-        <select id="profile-sex" name="sex">
-          <option value="">–</option>
-          {% for key, label in sexes.items() %}<option value="{{ key }}"{% if values.sex == key %} selected{% endif %}>{{ label }}</option>{% endfor %}
-        </select>
-      </div>
-      <div class="field{% if errors.birth_year %} invalid{% endif %}">
-        <label for="profile-birth-year">Birth year</label>
-        <input id="profile-birth-year" name="birth_year" type="text" inputmode="numeric" autocomplete="off" value="{{ values.birth_year }}">
-        {% if errors.birth_year %}<span class="error">{{ errors.birth_year }}</span>{% endif %}
+    <div class="field">
+      <span class="field-label" id="profile-sex">Sex</span>
+      <div class="pills" role="radiogroup" aria-labelledby="profile-sex">
+        {% for key, label in [("", "Not set")] + sexes.items()|list %}
+        <label class="pill-radio"><input type="radio" name="sex" value="{{ key }}"{% if (values.sex or "") == key %} checked{% endif %}>{{ label }}</label>
+        {% endfor %}
       </div>
     </div>
-    <div class="field{% if errors.height %} invalid{% endif %}">
-      <label for="profile-height-ft">Height (ft, in)</label>
-      <div class="grid-2">
-        <input id="profile-height-ft" name="height_ft" type="text" inputmode="numeric" autocomplete="off" placeholder="ft" aria-label="Height feet" value="{{ values.height_ft }}">
-        <input name="height_inches" type="text" inputmode="decimal" autocomplete="off" placeholder="in" aria-label="Height inches" value="{{ values.height_inches }}">
+    <div class="grid-2">
+      <div class="field{% if errors.birth_year %} invalid{% endif %}">
+        <label for="profile-birth-year">Birth year</label>
+        <input class="glass-input" id="profile-birth-year" name="birth_year" type="text" inputmode="numeric" autocomplete="off" value="{{ values.birth_year }}">
+        {% if errors.birth_year %}<span class="error">{{ errors.birth_year }}</span>{% endif %}
       </div>
-      {% if errors.height %}<span class="error">{{ errors.height }}</span>{% endif %}
+      <div class="field{% if errors.height %} invalid{% endif %}">
+        <label for="profile-height-ft">Height (ft, in)</label>
+        <div class="grid-2">
+          <input class="glass-input" id="profile-height-ft" name="height_ft" type="text" inputmode="numeric" autocomplete="off" placeholder="ft" aria-label="Height feet" value="{{ values.height_ft }}">
+          <input class="glass-input" name="height_inches" type="text" inputmode="decimal" autocomplete="off" placeholder="in" aria-label="Height inches" value="{{ values.height_inches }}">
+        </div>
+        {% if errors.height %}<span class="error">{{ errors.height }}</span>{% endif %}
+      </div>
     </div>
     <div class="field">
       <label for="profile-goal">Goal</label>
-      <select id="profile-goal" name="goal">
+      <select class="glass-input" id="profile-goal" name="goal">
         <option value="">–</option>
         {% for key, label in goals.items() %}<option value="{{ key }}"{% if values.goal == key %} selected{% endif %}>{{ label }}</option>{% endfor %}
       </select>
@@ -38,13 +39,13 @@
     ] %}
     <div class="field{% if errors[key] %} invalid{% endif %}">
       <label for="profile-{{ key }}">{{ label }}</label>
-      <textarea id="profile-{{ key }}" name="{{ key }}" rows="{{ rows }}" placeholder="{{ placeholder }}">{{ values[key] }}</textarea>
+      <textarea class="glass-input" id="profile-{{ key }}" name="{{ key }}" rows="{{ rows }}" placeholder="{{ placeholder }}">{{ values[key] }}</textarea>
       {% if errors[key] %}<span class="error">{{ errors[key] }}</span>{% endif %}
     </div>
     {% endfor %}
     <div class="actions">
       {% if saved %}<p class="flash">Saved</p>{% endif %}
-      <button class="btn btn-primary" type="submit">Save</button>
+      <button class="btn accent" type="submit">Save</button>
     </div>
   </form>
 </section>

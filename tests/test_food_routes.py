@@ -17,7 +17,7 @@ def test_foods_page(client, db):
 def test_add_food(client, db):
     r = client.post("/quick-foods", data={"name": "Oats", "serving_label": "40 g", "protein": "5", "fat": "3", "carbs": "27", "calories": ""})
     assert r.status_code == 200
-    assert 'id="food-list" class="card" hx-swap-oob="true"' in r.text
+    assert 'id="food-list" class="card glass" hx-swap-oob="true"' in r.text
     [food] = list_quick_foods(db)
     assert (food.name, food.serving_label, food.calories) == ("Oats", "40 g", 155)
 

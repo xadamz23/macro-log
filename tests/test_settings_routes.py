@@ -59,6 +59,7 @@ def test_save_profile(client, db):
     page = client.get("/settings").text
     assert 'value="1990"' in page
     assert '<option value="lean_bulk" selected>' in page
+    assert 'name="sex" value="male" checked' in page
 
 
 def test_save_profile_invalid(client, db):

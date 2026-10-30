@@ -1,4 +1,4 @@
-<section id="weigh-card" class="card weigh">
+<section id="weigh-card" class="card glass weigh">
   {% if weighed and not editing %}
   <div class="weigh-done">
     <div>
@@ -13,12 +13,12 @@
   {% else %}
   <h2>Today’s weigh-in</h2>
   <form class="weigh-row" hx-post="/weight" hx-target="#weight-body" hx-swap="outerHTML">
-    <label class="weigh-input{% if error %} invalid{% endif %}">
+    <label class="weigh-input glass-input{% if error %} invalid{% endif %}">
       <input name="weight" type="text" inputmode="decimal" autocomplete="off" aria-label="Weight in pounds"
              value="{{ value }}"{% if prev %} placeholder="{{ prev.weight|num }}"{% endif %} autofocus>
       <span>lb</span>
     </label>
-    <button class="btn btn-primary" type="submit">Save</button>
+    <button class="btn accent" type="submit">Save</button>
   </form>
   {% if error %}<p class="error">{{ error }}</p>{% endif %}
   <div class="weigh-foot">

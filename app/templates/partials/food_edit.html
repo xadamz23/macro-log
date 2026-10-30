@@ -2,10 +2,10 @@
   <form class="stack" style="padding: 12px 0" hx-put="/quick-foods/{{ food.id }}" hx-target="#food-list" hx-swap="outerHTML" x-data="macroForm">
     {% with prefix = "food-" ~ food.id %}{% include "partials/food_fields.html" %}{% endwith %}
     <div class="actions">
-      <button type="button" class="btn btn-danger" hx-delete="/quick-foods/{{ food.id }}" hx-target="#food-list" hx-swap="outerHTML"
+      <button type="button" class="btn btn-glass btn-danger" hx-delete="/quick-foods/{{ food.id }}" hx-target="#food-list" hx-swap="outerHTML"
               hx-confirm="Delete {{ food.name }}? Past entries are kept.">Delete</button>
-      <button type="button" class="btn" hx-get="/quick-foods" hx-target="#food-list" hx-swap="outerHTML">Cancel</button>
-      <button type="submit" class="btn btn-primary">Save</button>
+      <button type="button" class="btn btn-glass" hx-get="/quick-foods" hx-target="#food-list" hx-swap="outerHTML">Cancel</button>
+      <button type="submit" class="btn accent">Save</button>
     </div>
   </form>
 </li>

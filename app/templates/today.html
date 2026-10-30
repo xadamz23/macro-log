@@ -18,27 +18,27 @@
   {% include "partials/header_menu.html" %}
 </header>
 {% if is_today and not weighed_today %}
-<a class="nudge" href="/weight"><span>No weigh-in yet today</span><strong>Log weight</strong></a>
+<a class="nudge glass" href="/weight"><span>No weigh-in yet today</span><strong>Log weight</strong></a>
 {% endif %}
 {% include "partials/macro_bars.html" %}
 {% include "partials/entry_list.html" %}
 {% endblock %}
 
 {% block log_button %}
-<button type="button" class="log-btn" @click="$dispatch('open-log')" aria-label="Log food">{{ icon("plus") }}</button>
+<button type="button" class="log-btn accent" @click="$dispatch('open-log')" aria-label="Log food">{{ icon("plus") }}</button>
 {% endblock %}
 
 {% block overlay %}
 <div x-data="logSheet({{ 'true' if open_log else 'false' }})"
      @open-log.window="show()" @entry-logged.window="hide()" @keydown.escape.window="hide()">
   <div class="sheet-backdrop" x-show="open" x-transition.opacity x-cloak @click="hide()"></div>
-  <div class="sheet" role="dialog" aria-modal="true" aria-label="Log food" x-show="open" x-cloak
+  <div class="sheet glass-strong" role="dialog" aria-modal="true" aria-label="Log food" x-show="open" x-cloak
        x-transition:enter="sheet-anim" x-transition:enter-start="sheet-off"
        x-transition:leave="sheet-anim" x-transition:leave-end="sheet-off">
     <div class="sheet-handle"></div>
     <div class="sheet-head">
       <h2>Log food{% if not is_today %} · {{ day|day(today) }}{% endif %}</h2>
-      <button type="button" class="icon-btn" @click="hide()" aria-label="Close">✕</button>
+      <button type="button" class="icon-btn btn-glass" @click="hide()" aria-label="Close">✕</button>
     </div>
     <div x-ref="body" data-url="/log-sheet?day={{ '' if is_today else day.isoformat() }}">
       <p class="empty">Loading…</p>

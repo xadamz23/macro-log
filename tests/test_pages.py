@@ -74,7 +74,7 @@ def test_day_header_has_date_jump(client):
 
 def test_bottom_nav_has_weight_and_menu_has_settings(client):
     html = client.get("/").text
-    bottom_nav = html.split('class="bottom-nav"')[1]
+    bottom_nav = html.split('class="bottom-nav')[1]
     assert 'href="/weight"' in bottom_nav and 'href="/settings"' not in bottom_nav
     assert 'class="menu-wrap"' in html and 'href="/settings"' in html
     for path in ("/history", "/settings", "/settings/foods", "/weight"):

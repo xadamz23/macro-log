@@ -1,4 +1,4 @@
-<section id="targets-card" class="card">
+<section id="targets-card" class="card glass">
   <h2>Daily targets</h2>
   <form class="stack" hx-post="/settings/targets" hx-target="#targets-card" hx-swap="outerHTML" x-data="macroForm">
     {% if errors.form %}<p class="error">{{ errors.form }}</p>{% endif %}
@@ -6,7 +6,7 @@
     <p class="hint">Changes apply from today onward. Past days keep the targets they had.</p>
     <div class="actions">
       {% if saved %}<p class="flash">Saved</p>{% endif %}
-      <button class="btn btn-primary" type="submit">Save targets</button>
+      <button class="btn accent" type="submit">Save targets</button>
     </div>
   </form>
   {% if history %}

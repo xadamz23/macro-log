@@ -1,10 +1,10 @@
-<section id="tz-card" class="card">
+<section id="tz-card" class="card glass">
   <h2>Timezone</h2>
   <form class="row" hx-post="/settings/timezone" hx-target="#tz-card" hx-swap="outerHTML">
-    <select name="timezone" aria-label="Timezone">
+    <select class="glass-input" name="timezone" aria-label="Timezone">
       {% for name in timezones %}<option value="{{ name }}"{% if name == timezone %} selected{% endif %}>{{ name }}</option>{% endfor %}
     </select>
-    <button class="btn btn-primary" type="submit">Save</button>
+    <button class="btn accent" type="submit">Save</button>
   </form>
   {% if error %}<p class="error">{{ error }}</p>{% endif %}
   {% if saved %}<p class="flash">Saved, today is {{ today|day }}</p>{% endif %}

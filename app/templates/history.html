@@ -3,7 +3,7 @@
 {% block content %}
 <header class="day-header"><h1>History</h1>{% include "partials/header_menu.html" %}</header>
 
-<section class="card stats">
+<section class="card glass stats">
   {% for label, avg in [("7-day avg", avg7), ("30-day avg", avg30)] %}
   <div>
     <div class="stat-label">{{ label }}</div>
@@ -18,17 +18,17 @@
   {% endfor %}
 </section>
 
-<section class="card" x-data="historyCharts(30)">
-  <div class="segmented" role="group" aria-label="Chart range">
+<section class="card glass" x-data="historyCharts(30)">
+  <div class="segmented glass" role="group" aria-label="Chart range">
     {% for n in [14, 30, 90] %}
-    <button type="button" :class="days === {{ n }} && 'active'" @click="setRange({{ n }})">{{ n }}d</button>
+    <button type="button" :class="days === {{ n }} && 'accent'" @click="setRange({{ n }})">{{ n }}d</button>
     {% endfor %}
   </div>
   <div class="chart-box"><canvas x-ref="calories" aria-label="Calories per day" role="img"></canvas></div>
   <div class="chart-box"><canvas x-ref="macros" aria-label="Protein, fat and carbs per day" role="img"></canvas></div>
 </section>
 
-<section class="card">
+<section class="card glass">
   <h2>Days</h2>
   {% if days %}
   <ul class="list">{% include "partials/day_rows.html" %}</ul>

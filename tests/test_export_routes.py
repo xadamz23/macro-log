@@ -12,6 +12,7 @@ def test_export_page(client):
     r = client.get("/export")
     assert r.status_code == 200
     assert 'action="/export/download"' in r.text
+    assert 'name="range" value="all" checked' in r.text
     assert "About me" in r.text
 
 

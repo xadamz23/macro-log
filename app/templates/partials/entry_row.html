@@ -1,6 +1,6 @@
 <li id="entry-{{ entry.id }}" class="entry-row">
   <button type="button" class="entry-main" hx-get="/entries/{{ entry.id }}/edit" hx-target="#entry-{{ entry.id }}" hx-swap="outerHTML">
-    <span class="entry-name">{{ entry.name or "Quick add" }}{% if entry.servings != 1 %} <small>×{{ entry.servings|num }}</small>{% endif %}</span>
+    <span class="entry-name">{{ entry.name or "Quick add" }}{% if entry.servings != 1 %} <span class="glass-chip">×{{ entry.servings|num }}</span>{% endif %}</span>
     <span class="entry-macros">{{ entry.calories }} kcal · P {{ entry.protein|num }} · F {{ entry.fat|num }} · C {{ entry.carbs|num }}</span>
   </button>
   <span class="entry-time">{{ entry.logged_at|time(tz) }}</span>

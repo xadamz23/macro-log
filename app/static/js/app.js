@@ -4,7 +4,7 @@ function showToast(message, isError) {
   const slot = document.getElementById("toast");
   if (!slot) return;
   const el = document.createElement("div");
-  el.className = "toast" + (isError ? " error" : "");
+  el.className = "toast glass-strong is-popover" + (isError ? " error" : "");
   el.textContent = message;
   slot.replaceChildren(el);
   setTimeout(() => el.remove(), 4000);

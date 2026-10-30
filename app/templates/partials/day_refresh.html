@@ -2,7 +2,7 @@
 {% include "partials/entry_list.html" %}
 <div id="toast" class="toast-slot" hx-swap-oob="true">
   {% if toast_entry %}
-  <div class="toast" x-data x-init="setTimeout(() => $el.remove(), 6000)">
+  <div class="toast glass-strong is-popover" x-data x-init="setTimeout(() => $el.remove(), 6000)">
     <span>Logged {{ toast_entry.name or "entry" }}</span>
     <button type="button" hx-delete="/entries/{{ toast_entry.id }}" hx-swap="none">Undo</button>
   </div>

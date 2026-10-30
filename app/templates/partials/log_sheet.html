@@ -2,7 +2,7 @@
 {% set quick_names = quick_foods|map(attribute="name")|map("lower")|list %}
 {% set recent_names = recent|map(attribute="name")|map("lower")|list %}
 <div x-data="foodSearch">
-  <input type="search" class="food-search" placeholder="Search foods" aria-label="Search foods" autocomplete="off" x-model="q">
+  <input type="search" class="glass-input food-search" placeholder="Search foods" aria-label="Search foods" autocomplete="off" x-model="q">
   {% if quick_foods %}
   <div x-show='any({{ quick_names|tojson }})'>
     <div class="section-label">Quick foods</div>

@@ -2,13 +2,13 @@
   <form class="entry-edit stack" hx-put="/weigh-ins/{{ w.id }}" hx-target="#weight-body" hx-swap="outerHTML">
     <div class="field{% if error %} invalid{% endif %}">
       <label for="weigh-in-{{ w.id }}-weight">{{ w.day|day(today) }}</label>
-      <input id="weigh-in-{{ w.id }}-weight" type="text" name="weight" inputmode="decimal" autocomplete="off" value="{{ value }}">
+      <input class="glass-input" id="weigh-in-{{ w.id }}-weight" type="text" name="weight" inputmode="decimal" autocomplete="off" value="{{ value }}">
       {% if error %}<span class="error">{{ error }}</span>{% endif %}
     </div>
     <div class="actions">
-      <button type="button" class="btn btn-danger" hx-delete="/weigh-ins/{{ w.id }}" hx-target="#weight-body" hx-swap="outerHTML" hx-confirm="Delete this weigh-in?">Delete</button>
-      <button type="button" class="btn" hx-get="/weigh-ins/{{ w.id }}/row" hx-target="#weigh-in-{{ w.id }}" hx-swap="outerHTML">Cancel</button>
-      <button type="submit" class="btn btn-primary">Save</button>
+      <button type="button" class="btn btn-glass btn-danger" hx-delete="/weigh-ins/{{ w.id }}" hx-target="#weight-body" hx-swap="outerHTML" hx-confirm="Delete this weigh-in?">Delete</button>
+      <button type="button" class="btn btn-glass" hx-get="/weigh-ins/{{ w.id }}/row" hx-target="#weigh-in-{{ w.id }}" hx-swap="outerHTML">Cancel</button>
+      <button type="submit" class="btn accent">Save</button>
     </div>
   </form>
 </li>
