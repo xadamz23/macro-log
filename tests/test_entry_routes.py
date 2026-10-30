@@ -159,5 +159,5 @@ def test_log_sheet_offers_photo_to_ai(client):
     r = client.get(f"/log-sheet?day={TODAY.isoformat()}")
     assert 'x-data="photoShare" @open-log.window="reset()"' in r.text
     assert "Ask AI from a photo" in r.text
-    assert 'capture="environment"' in r.text and "Choose from your photos" in r.text
+    assert 'capture="environment"' in r.text and "Choose a photo" in r.text
     assert 'id="entry-form"' in r.text
