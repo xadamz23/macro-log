@@ -339,9 +339,8 @@ textarea { resize: vertical; }
 .nav-item:active .nav-icon { background: var(--hover); }
 .nav-item svg { width: 22px; height: 22px; }
 .log-btn {
-  --log-size: 44px;
   justify-self: center;
-  width: var(--log-size); height: var(--log-size);
+  width: 44px; height: 44px;
   display: grid; place-items: center;
   border-radius: 50%;
   border: 1.5px solid color-mix(in srgb, var(--accent) 55%, transparent);
@@ -353,13 +352,6 @@ textarea { resize: vertical; }
 .log-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .log-btn:active { background: color-mix(in srgb, var(--accent) 12%, transparent); }
 .log-btn svg { width: 22px; height: 22px; }
-/* TEMP: ring size toggle (44 vs 48). Remove with the toggle in base.html once a size is picked. */
-html[data-ring="48"] .log-btn { --log-size: 48px; }
-.ring-toggle {
-  position: fixed; z-index: 40; top: calc(8px + env(safe-area-inset-top)); left: 8px;
-  padding: 6px 12px; border-radius: 999px;
-  font: inherit; font-size: 0.8rem; font-weight: 600; color: var(--text);
-}
 
 /* Bottom sheet */
 .sheet-backdrop { position: fixed; inset: 0; z-index: 30; background: rgb(2 4 8 / 0.55); }

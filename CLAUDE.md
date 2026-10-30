@@ -17,7 +17,7 @@ Tailwind or build step, so a new class works as soon as it's in that file.
   - `.glass-chip`: small badges, e.g. the servings ×2 on an entry.
   - `.glass-input`: every text input, select and textarea, or a wrapper around one (`.weigh-input`, uses
     `:focus-within`).
-  - `.accent`: primary buttons (`btn accent`), the + log button, the active range pill. The current nav item, a
+  - `.accent`: primary buttons (`btn accent`), the active range pill. The current nav item, a
     checked `.pill-radio` and an on toggle get the same style through the `.accent` selector list. Add state-driven
     selectors there rather than copying the gradient.
   - `.btn-glass`: secondary buttons (`btn btn-glass`); add `btn-danger` for destructive ones, which fill red on hover.
@@ -28,7 +28,8 @@ Tailwind or build step, so a new class works as soon as it's in that file.
     is re-blurred every frame while its container moves or scrolls, and a dozen of them in the log sheet made it
     stutter on phones. Nested glass on an already-blurred tint looks the same without it.
 - **Range/filter tabs:** `.segmented.glass` holding buttons; the active one gets `accent` (via Alpine `:class`).
-- **Bottom nav** floats clear of the screen edges and is no wider than the page column. Mark the current item with
+- **Bottom nav** floats clear of the screen edges and is no wider than the page column. The + log button is a flat
+  44px accent-outline ring (`.log-btn`), not `.accent`, so it doesn't read as a second current-page pill. Mark the current item with
   `aria-current="page"` (the `nav_item` macro in `base.html` does this); don't add an `active` class.
 - **Colors:** use the `:root` tokens. `--accent` is the light tint for text, lines and focus rings; the
   `--accent-from`/`--accent-to` gradient is only for filled controls. Macro colors (`--cal`, `--protein`, `--fat`,
