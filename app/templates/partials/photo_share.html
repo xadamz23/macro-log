@@ -18,12 +18,10 @@
       <button type="button" class="photo-pick glass" @click="$refs.camera.click()">
         <span class="photo-ico">{{ icon("camera") }}</span>
         <span class="row-title">Take a photo</span>
-        <span class="row-sub">Opens the camera</span>
       </button>
       <button type="button" class="photo-pick glass" @click="$refs.library.click()">
         <span class="photo-ico">{{ icon("image") }}</span>
         <span class="row-title">Choose from your photos</span>
-        <span class="row-sub">Pick one you took</span>
       </button>
     </div>
     <input type="file" accept="image/*" capture="environment" class="photo-file" x-ref="camera" tabindex="-1" aria-hidden="true" @change="choose($event)">
