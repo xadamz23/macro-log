@@ -17,6 +17,28 @@ document.addEventListener("htmx:sendError", () => {
   showToast("Network error, check your connection", true);
 });
 
+// A small copy of a photo for on-screen preview. A full-size camera photo (12 MP is ~48 MB decoded) inside the
+// blurred sheet made iOS drop and repaint it, so the sheet flickered. The original is still what gets shared.
+async function previewUrl(file, maxSide = 1200) {
+  const full = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.src = full;
+    await img.decode();
+    const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(img.naturalWidth * scale);
+    canvas.height = Math.round(img.naturalHeight * scale);
+    canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
+    return URL.createObjectURL(blob);
+  } catch {
+    return URL.createObjectURL(file); // couldn't decode it here; show the original
+  } finally {
+    URL.revokeObjectURL(full);
+  }
+}
+
 // Native date picker in the day header; an empty value means the picker was cleared.
 function jumpToDay(value, today) {
   if (!value) return;
@@ -108,14 +130,22 @@ Then one short line with the portion size you assumed. Nothing else.`;
       this.edited = false;
       this.prompt = this.buildPrompt();
     },
-    choose(event) {
+    async choose(event) {
       const file = event.target.files[0];
       event.target.value = "";
       if (!file) return;
-      if (this.url) URL.revokeObjectURL(this.url);
       this.file = file;
-      this.url = URL.createObjectURL(file);
+      const url = await previewUrl(file);
+      if (this.file !== file) return URL.revokeObjectURL(url); // another photo was picked meanwhile
+      if (this.url) URL.revokeObjectURL(this.url);
+      this.url = url;
       this.step = "preview";
+    },
+    // The sheet shows its old body until the reload lands, so clear the photo before it slides back up.
+    reset() {
+      if (this.url) URL.revokeObjectURL(this.url);
+      Object.assign(this, { step: null, file: null, url: "", what: "", fork: true, edited: false, showPrompt: false });
+      this.prompt = this.buildPrompt();
     },
     back() {
       this.step = this.step === "preview" ? "pick" : null;

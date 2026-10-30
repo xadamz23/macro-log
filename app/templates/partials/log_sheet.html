@@ -1,4 +1,4 @@
-<div x-data="photoShare">
+<div x-data="photoShare" @open-log.window="reset()">
   {% include "partials/photo_share.html" %}
   <div x-show="!step">
     {% if quick_foods or recent %}
