@@ -39,6 +39,7 @@ SHELL_ASSETS = (
     "vendor/alpine.min.js",
     "vendor/chart.umd.js",
     "icons/icon-192.png",
+    "icons/favicon.svg",
 )
 NO_CACHE = {"Cache-Control": "no-cache"}
 

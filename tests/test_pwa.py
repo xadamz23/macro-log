@@ -32,6 +32,15 @@ def test_icons_are_pngs_of_right_size():
         assert struct.unpack(">II", data[16:24]) == (size, size)
 
 
+def test_base_links_favicons(client):
+    html = client.get("/").text
+    assert 'rel="icon" href="/static/icons/favicon.svg?v=' in html
+    assert 'rel="icon" href="/static/icons/favicon-32.png?v=' in html
+    assert (ICONS / "favicon.svg").read_text().startswith("<svg")
+    data = (ICONS / "favicon-32.png").read_bytes()
+    assert struct.unpack(">II", data[16:24]) == (32, 32)
+
+
 def test_installed_app_name_is_macrolog(client):
     data = client.get("/manifest.webmanifest").json()
     assert data["name"] == "MacroLog"
