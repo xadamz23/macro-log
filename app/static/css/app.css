@@ -186,6 +186,11 @@ h2 {
 .day-header-switch { display: grid; grid-template-columns: 40px 1fr 40px; }
 .day-switch { display: flex; align-items: center; justify-content: center; gap: 2px; min-width: 0; }
 .day-switch .day-title { white-space: nowrap; }
+/* Same square tap highlight as the nav items (it inherits, so this covers ‹, › and the date input): show the press
+   on the round button or the title instead. */
+.day-switch { -webkit-tap-highlight-color: transparent; }
+.day-nav:active { background: var(--hover); }
+.day-title:active { opacity: 0.7; }
 
 /* Header menu */
 .menu-wrap { position: relative; }
