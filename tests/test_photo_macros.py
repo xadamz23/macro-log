@@ -91,6 +91,22 @@ def test_bad_uploads_never_reach_claude(client, db, estimator, kwargs, status):
     assert _entries(db) == []
 
 
+def test_oversized_body_is_rejected_before_parsing(client, db, estimator):
+    r = client.post(
+        "/entries/photo", content=b"x" * 16, headers={"Content-Type": "text/plain", "Content-Length": str(11 * 1024 * 1024)}
+    )
+    assert r.status_code == 413
+    assert r.headers["X-Error-Message"] == "That photo is too large."
+    assert estimator.calls == []
+
+
+def test_extra_files_are_refused(client, db, estimator):
+    r = client.post("/entries/photo", files=[("photo", JPEG), ("other", JPEG)])
+    assert r.status_code == 400
+    assert estimator.calls == []
+    assert _entries(db) == []
+
+
 def test_photo_route_is_off_without_a_key(client, db):
     assert client.post("/entries/photo", files={"photo": JPEG}).status_code == 404
     assert _entries(db) == []

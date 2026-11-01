@@ -21,6 +21,7 @@ from app.views import day_context
 router = APIRouter()
 
 PHOTO_MAX_BYTES = 10 * 1024 * 1024
+PHOTO_MAX_BODY_BYTES = PHOTO_MAX_BYTES + 64 * 1024  # room for the other fields and multipart overhead
 PHOTO_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 
 
@@ -116,7 +117,11 @@ async def create_entry_route(request: Request, db: DB, tz: TZ, today: Today):
 async def create_entry_from_photo(request: Request, db: DB, tz: TZ, today: Today, estimator: Estimator):
     if estimator is None:
         raise HTTPException(status_code=404, detail="Logging from a photo isn't set up")
-    data = await request.form()
+    # Parsing spools the whole body to disk, so turn away an oversized one first.
+    length = request.headers.get("content-length", "")
+    if length.isdigit() and int(length) > PHOTO_MAX_BODY_BYTES:
+        return _photo_error("That photo is too large.", 413)
+    data = await request.form(max_files=1, max_fields=10)
     photo = data.get("photo")
     if not isinstance(photo, UploadFile):
         return _photo_error("Add a photo first.", 400)
