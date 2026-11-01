@@ -5,8 +5,8 @@
     <div class="qf-grid">
       {% for item in recent %}
       {% set vals = {"day": day_value, "name": item.name, "calories": item.macros.calories, "protein": item.macros.protein, "fat": item.macros.fat, "carbs": item.macros.carbs} %}
-      <div class="qf-tile glass glass-card" x-data="{ more: false }" data-name="{{ item.name|lower }}" x-show="matches($el.dataset.name)">
-        <button type="button" class="qf-log" hx-post="/entries" hx-swap="none" hx-disabled-elt="this"
+      <div class="qf-tile glass glass-card" x-data="{ more: false }" @open-log.window="more = false" data-name="{{ item.name|lower }}" x-show="matches($el.dataset.name)">
+        <button type="button" class="qf-log" @click="hide()" hx-post="/entries" hx-swap="none" hx-disabled-elt="this"
                 hx-vals='{{ vals|tojson }}'>
           <span class="qf-name">{{ item.name }}</span>
           <span class="qf-meta">{{ item.macros.calories }} kcal · P {{ item.macros.protein|num }}</span>

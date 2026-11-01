@@ -84,7 +84,7 @@ def test_log_quick_food_errors(client, db):
 def test_log_sheet_lists_quick_and_recent(client, db):
     create_quick_food(db, name="Yogurt", serving_label="", macros=Macros(100))
     create_entry(db, day=TODAY, macros=Macros(300, 30, 10, 20), name="Chicken bowl")
-    r = client.get(f"/log-sheet?day={TODAY.isoformat()}")
+    r = client.get("/")
     assert r.status_code == 200
     assert "Yogurt" in r.text and "Chicken bowl" in r.text
     assert 'id="entry-form"' in r.text
@@ -94,7 +94,7 @@ def test_log_sheet_lists_quick_and_recent(client, db):
 def test_hide_recent_food_route(client, db):
     create_entry(db, day=TODAY, macros=Macros(300, 30, 10, 20), name="Chicken bowl")
     create_entry(db, day=TODAY, macros=Macros(150, 5, 5, 20), name="Granola bar")
-    sheet = client.get(f"/log-sheet?day={TODAY.isoformat()}")
+    sheet = client.get("/")
     assert 'hx-post="/recent-foods/hide"' in sheet.text and "Options for Chicken bowl" in sheet.text
 
     r = client.post("/recent-foods/hide", data={"day": TODAY.isoformat(), "name": "Chicken bowl",
@@ -103,7 +103,7 @@ def test_hide_recent_food_route(client, db):
     assert 'id="recent-foods"' in r.text
     assert "Granola bar" in r.text and "Chicken bowl" not in r.text
     assert f'"day": "{TODAY.isoformat()}"' in r.text
-    assert "Chicken bowl" not in client.get("/log-sheet").text
+    assert "Chicken bowl" not in _sheet(client.get("/").text)
 
     assert client.post("/recent-foods/hide", data={"name": "", "calories": "300"}).status_code == 422
 
@@ -112,8 +112,8 @@ def test_log_sheet_orders_quick_foods_by_recent_use(client, db):
     create_quick_food(db, name="Apple", serving_label="", macros=Macros(100))
     yogurt = create_quick_food(db, name="Yogurt", serving_label="", macros=Macros(100))
     client.post(f"/quick-foods/{yogurt.id}/log", data={"day": TODAY.isoformat(), "servings": "1"})
-    r = client.get(f"/log-sheet?day={TODAY.isoformat()}")
-    assert r.text.index("Yogurt") < r.text.index("Apple")
+    sheet = _sheet(client.get("/").text)
+    assert sheet.index("Yogurt") < sheet.index("Apple")
 
 
 def test_edit_update_delete_entry(client, db):
@@ -139,28 +139,78 @@ def test_edit_update_delete_entry(client, db):
 def test_today_page_has_sheet(client):
     r = client.get("/?log=1")
     assert 'x-data="logSheet(true)"' in r.text
-    assert 'data-url="/log-sheet?day="' in r.text
+    assert 'id="log-sheet-body"' in r.text and 'id="entry-form"' in r.text
 
 
 def test_log_sheet_search_filters_tiles_by_name(client, db):
     create_quick_food(db, name="Greek Yogurt", serving_label="", macros=Macros(100))
     create_entry(db, day=TODAY, macros=Macros(300, 30, 10, 20), name="Chicken Bowl")
-    r = client.get(f"/log-sheet?day={TODAY.isoformat()}")
+    r = client.get("/")
     assert 'type="search"' in r.text
     assert 'data-name="greek yogurt"' in r.text
     assert 'data-name="chicken bowl"' in r.text
 
 
 def test_log_sheet_without_foods_has_no_search(client):
-    r = client.get(f"/log-sheet?day={TODAY.isoformat()}")
+    r = client.get("/")
     assert 'type="search"' not in r.text
 
 
 def test_log_sheet_offers_logging_from_a_photo(app, client):
     app.dependency_overrides[get_macro_estimator] = lambda: object()
-    r = client.get(f"/log-sheet?day={TODAY.isoformat()}")
+    r = client.get("/")
     assert 'x-data="photoLog" @open-log.window="reset()"' in r.text
     assert "Log from a photo" in r.text
     assert 'hx-post="/entries/photo"' in r.text
     assert 'capture="environment"' in r.text and "Choose a photo" in r.text
     assert 'id="entry-form"' in r.text
+
+
+def _sheet(html):
+    """The log sheet's contents, so an entry on the day's list doesn't count as a tile."""
+    return html.split('id="log-sheet-body"')[1]
+
+
+def test_opening_the_sheet_needs_no_route(client):
+    assert client.get("/log-sheet").status_code == 404
+
+
+def test_past_day_page_sheet_logs_to_that_day(client):
+    assert 'name="day" value="2026-10-10"' in _sheet(client.get("/day/2026-10-10").text)
+
+
+def test_create_response_updates_the_sheet(client, db):
+    r = client.post("/entries", data={"name": "Chicken bowl", "calories": "300", "save_quick": "on"})
+    assert 'id="log-sheet-body" hx-swap-oob="innerHTML"' in r.text
+    assert 'class="qf-name">Chicken bowl' in _sheet(r.text)
+    assert 'name="day" value=""' in _sheet(r.text)
+
+
+def test_quick_food_log_response_reorders_the_sheet(client, db):
+    create_quick_food(db, name="Apple", serving_label="", macros=Macros(100))
+    yogurt = create_quick_food(db, name="Yogurt", serving_label="", macros=Macros(100))
+    r = client.post(f"/quick-foods/{yogurt.id}/log", data={"day": "", "servings": "1"})
+    sheet = _sheet(r.text)
+    assert sheet.index("Yogurt") < sheet.index("Apple")
+
+
+def test_edit_and_delete_responses_update_recent_foods(client, db):
+    entry = create_entry(db, day=TODAY, macros=Macros(100, 5, 5, 5), name="Snack")
+    r = client.put(f"/entries/{entry.id}", data={"name": "Toast", "calories": "100"})
+    assert 'class="qf-name">Toast' in _sheet(r.text) and "Snack" not in _sheet(r.text)
+    r = client.delete(f"/entries/{entry.id}")
+    assert 'id="log-sheet-body"' in r.text and "Toast" not in _sheet(r.text)
+
+
+def test_past_day_edit_response_keeps_the_sheet_on_that_day(client, db):
+    entry = create_entry(db, day=date(2026, 10, 10), macros=Macros(100), name="Snack")
+    r = client.put(f"/entries/{entry.id}", data={"name": "Toast", "calories": "100"})
+    assert 'name="day" value="2026-10-10"' in _sheet(r.text)
+
+
+def test_write_response_honors_photo_setting(app, client):
+    r = client.post("/entries", data={"calories": "100"})
+    assert "Log from a photo" not in _sheet(r.text)
+    app.dependency_overrides[get_macro_estimator] = lambda: object()
+    r = client.post("/entries", data={"calories": "100"})
+    assert "Log from a photo" in _sheet(r.text)

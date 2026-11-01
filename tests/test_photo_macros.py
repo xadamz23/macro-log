@@ -113,7 +113,7 @@ def test_photo_route_is_off_without_a_key(client, db):
 
 
 def test_log_sheet_hides_the_photo_row_without_a_key(client):
-    r = client.get(f"/log-sheet?day={TODAY.isoformat()}")
+    r = client.get("/")
     assert "Log from a photo" not in r.text
     assert 'id="entry-form"' in r.text
 

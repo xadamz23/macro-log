@@ -82,6 +82,11 @@ document.addEventListener("alpine:init", () => {
     any(names) {
       return names.some((name) => this.matches(name));
     },
+    // Read from the tiles because hiding a recent food swaps only that section.
+    noMatches() {
+      const names = [...this.$root.querySelectorAll("[data-name]")].map((el) => el.dataset.name);
+      return this.q.trim() !== "" && !this.any(names);
+    },
   }));
 
   // Log sheet's "Log from a photo": camera or library → preview → POST /entries/photo, where Claude estimates the
@@ -128,7 +133,7 @@ document.addEventListener("alpine:init", () => {
     attach(event) {
       event.detail.formData.set("photo", this.upload, this.upload.name || "meal.jpg");
     },
-    // The sheet shows its old body until the reload lands, so clear the photo before it slides back up.
+    // The sheet keeps its body between opens, so clear the photo before it slides back up.
     reset() {
       this.stopWaiting();
       if (this.url) URL.revokeObjectURL(this.url);
@@ -139,9 +144,7 @@ document.addEventListener("alpine:init", () => {
     },
   }));
 
-  // Bottom sheet; its body is (re)loaded from the server every time it opens.
-  // htmx.ajax rather than an hx-trigger: after a boosted navigation Alpine can run
-  // init() before htmx has processed the swapped-in nodes, so a trigger would be lost.
+  // Bottom sheet; its body comes with the page and with the response to every write, so opening makes no request.
   Alpine.data("logSheet", (autoOpen) => ({
     open: false,
     init() {
@@ -155,9 +158,11 @@ document.addEventListener("alpine:init", () => {
       });
     },
     show() {
+      // A failed submit re-renders the form with the bad values as its defaults, so form.reset() can't blank it.
+      const blank = this.$root.querySelector("#entry-form-blank").content.firstElementChild.cloneNode(true);
+      this.$root.querySelector("#entry-form").replaceWith(blank);
+      htmx.process(blank);
       this.open = true;
-      const body = this.$refs.body;
-      htmx.ajax("GET", body.dataset.url, { target: body, swap: "innerHTML" });
     },
     hide() {
       this.open = false;

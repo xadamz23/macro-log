@@ -11,12 +11,11 @@ from app.services.foods import (
     create_quick_food,
     get_quick_food,
     hide_recent_food,
-    list_quick_foods_by_recent_use,
     recent_foods,
 )
 from app.services.photo_macros import EstimateError
 from app.templating import templates
-from app.views import day_context
+from app.views import day_context, sheet_context
 
 router = APIRouter()
 
@@ -33,9 +32,12 @@ def _parse_day(raw, today: date) -> date:
     return min(day, today)
 
 
-def _refresh(request: Request, db, day: date, today: date, tz: str, *, toast_entry=None, toast_detail=None, headers=None):
+def _refresh(
+    request: Request, db, day: date, today: date, tz: str, estimator, *, toast_entry=None, toast_detail=None, headers=None
+):
     context = {
         **day_context(db, day, today),
+        **sheet_context(db, day, today, photo_enabled=estimator is not None),
         "tz": tz,
         "oob": True,
         "toast_entry": toast_entry,
@@ -61,24 +63,8 @@ def _day_value(raw, day: date) -> str:
     return day.isoformat() if raw else ""
 
 
-@router.get("/log-sheet", response_class=HTMLResponse)
-def log_sheet(request: Request, db: DB, today: Today, estimator: Estimator, day: str = ""):
-    parsed = _parse_day(day, today)
-    context = {
-        "day": parsed,
-        "day_value": _day_value(day, parsed),
-        "photo_enabled": estimator is not None,
-        "quick_foods": list_quick_foods_by_recent_use(db),
-        "recent": recent_foods(db, today),
-        "values": {},
-        "errors": {},
-        "prefix": "entry",
-    }
-    return templates.TemplateResponse(request, "partials/log_sheet.html", context)
-
-
 @router.post("/entries", response_class=HTMLResponse)
-async def create_entry_route(request: Request, db: DB, tz: TZ, today: Today):
+async def create_entry_route(request: Request, db: DB, tz: TZ, today: Today, estimator: Estimator):
     data = await request.form()
     day = _parse_day(data.get("day"), today)
     form = parse_macro_form(data)
@@ -110,7 +96,7 @@ async def create_entry_route(request: Request, db: DB, tz: TZ, today: Today):
     if save_quick:
         quick_food_id = create_quick_food(db, name=name, serving_label=serving_label, macros=form.macros).id
     entry = create_entry(db, day=day, macros=form.macros, name=name, quick_food_id=quick_food_id)
-    return _refresh(request, db, day, today, tz, toast_entry=entry, headers={"HX-Trigger": "entry-logged"})
+    return _refresh(request, db, day, today, tz, estimator, toast_entry=entry, headers={"HX-Trigger": "entry-logged"})
 
 
 @router.post("/entries/photo", response_class=HTMLResponse)
@@ -149,12 +135,12 @@ async def create_entry_from_photo(request: Request, db: DB, tz: TZ, today: Today
         f"{estimate.portion}"
     )
     return _refresh(
-        request, db, day, today, tz, toast_entry=entry, toast_detail=detail, headers={"HX-Trigger": "entry-logged"}
+        request, db, day, today, tz, estimator, toast_entry=entry, toast_detail=detail, headers={"HX-Trigger": "entry-logged"}
     )
 
 
 @router.post("/quick-foods/{food_id}/log", response_class=HTMLResponse)
-async def log_quick_food_route(food_id: int, request: Request, db: DB, tz: TZ, today: Today):
+async def log_quick_food_route(food_id: int, request: Request, db: DB, tz: TZ, today: Today, estimator: Estimator):
     data = await request.form()
     food = get_quick_food(db, food_id)
     if food is None:
@@ -165,7 +151,7 @@ async def log_quick_food_route(food_id: int, request: Request, db: DB, tz: TZ, t
         raise HTTPException(status_code=422, detail="Invalid servings") from None
     day = _parse_day(data.get("day"), today)
     entry = log_quick_food(db, food, day=day, servings=servings)
-    return _refresh(request, db, day, today, tz, toast_entry=entry, headers={"HX-Trigger": "entry-logged"})
+    return _refresh(request, db, day, today, tz, estimator, toast_entry=entry, headers={"HX-Trigger": "entry-logged"})
 
 
 @router.post("/recent-foods/hide", response_class=HTMLResponse)
@@ -195,7 +181,7 @@ def entry_row(entry_id: int, request: Request, db: DB, tz: TZ):
 
 
 @router.put("/entries/{entry_id}", response_class=HTMLResponse)
-async def update_entry_route(entry_id: int, request: Request, db: DB, tz: TZ, today: Today):
+async def update_entry_route(entry_id: int, request: Request, db: DB, tz: TZ, today: Today, estimator: Estimator):
     entry = _entry_or_404(db, entry_id)
     data = await request.form()
     form = parse_macro_form(data)
@@ -210,12 +196,12 @@ async def update_entry_route(entry_id: int, request: Request, db: DB, tz: TZ, to
             headers={"HX-Retarget": f"#entry-{entry.id}", "HX-Reswap": "outerHTML"},
         )
     update_entry(db, entry, name=name, macros=form.macros)
-    return _refresh(request, db, entry.day, today, tz)
+    return _refresh(request, db, entry.day, today, tz, estimator)
 
 
 @router.delete("/entries/{entry_id}", response_class=HTMLResponse)
-def delete_entry_route(entry_id: int, request: Request, db: DB, tz: TZ, today: Today):
+def delete_entry_route(entry_id: int, request: Request, db: DB, tz: TZ, today: Today, estimator: Estimator):
     entry = _entry_or_404(db, entry_id)
     day = entry.day
     delete_entry(db, entry)
-    return _refresh(request, db, day, today, tz)
+    return _refresh(request, db, day, today, tz, estimator)

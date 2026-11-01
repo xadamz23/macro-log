@@ -37,7 +37,8 @@ def test_past_day_page_shows_that_day(client, db):
     create_entry(db, day=TODAY, macros=Macros(100), name="Apple")
     r = client.get("/day/2026-10-10")
     assert r.status_code == 200
-    assert "Pasta" in r.text and "Apple" not in r.text
+    day_list = r.text.split('id="log-sheet-body"')[0]
+    assert "Pasta" in day_list and "Apple" not in day_list
     assert 'href="/day/2026-10-09"' in r.text
     assert 'href="/day/2026-10-11"' in r.text
 

@@ -14,8 +14,7 @@ from tests.conftest import TODAY
 
 def test_today_sheet_posts_still_land_on_new_day_after_midnight(app, client, db):
     """An open Today page must not keep logging to the day it was rendered on."""
-    assert 'data-url="/log-sheet?day="' in client.get("/").text
-    sheet = client.get("/log-sheet?day=").text
+    sheet = client.get("/").text
     posted_day = re.search(r'name="day" value="([^"]*)"', sheet).group(1)
 
     tomorrow = TODAY + timedelta(days=1)
@@ -26,8 +25,7 @@ def test_today_sheet_posts_still_land_on_new_day_after_midnight(app, client, db)
 
 
 def test_past_day_sheet_keeps_explicit_day(client):
-    assert 'data-url="/log-sheet?day=2026-10-10"' in client.get("/day/2026-10-10").text
-    assert 'name="day" value="2026-10-10"' in client.get("/log-sheet?day=2026-10-10").text
+    assert 'name="day" value="2026-10-10"' in client.get("/day/2026-10-10").text
 
 
 def test_csrf_trusts_sec_fetch_site_over_rewritten_host(client):

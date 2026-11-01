@@ -4,18 +4,19 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.assets import assets
-from app.deps import DB, TZ, Today
+from app.deps import DB, TZ, Estimator, Today
 from app.services.weight import get_weigh_in
 from app.templating import templates
-from app.views import day_context
+from app.views import day_context, sheet_context
 
 router = APIRouter()
 
 
 @router.get("/", response_class=HTMLResponse)
-def today_page(request: Request, db: DB, tz: TZ, today: Today):
+def today_page(request: Request, db: DB, tz: TZ, today: Today, estimator: Estimator):
     context = {
         **day_context(db, today, today),
+        **sheet_context(db, today, today, photo_enabled=estimator is not None),
         "tz": tz,
         "nav": "today",
         "open_log": request.query_params.get("log") == "1",
@@ -25,10 +26,16 @@ def today_page(request: Request, db: DB, tz: TZ, today: Today):
 
 
 @router.get("/day/{day}", response_class=HTMLResponse)
-def day_page(request: Request, day: date, db: DB, tz: TZ, today: Today):
+def day_page(request: Request, day: date, db: DB, tz: TZ, today: Today, estimator: Estimator):
     if day >= today:
         return RedirectResponse("/", status_code=303)
-    context = {**day_context(db, day, today), "tz": tz, "nav": "history", "open_log": False}
+    context = {
+        **day_context(db, day, today),
+        **sheet_context(db, day, today, photo_enabled=estimator is not None),
+        "tz": tz,
+        "nav": "history",
+        "open_log": False,
+    }
     return templates.TemplateResponse(request, "today.html", context)
 
 

@@ -1,5 +1,6 @@
 {% include "partials/macro_bars.html" %}
 {% include "partials/entry_list.html" %}
+<div id="log-sheet-body" hx-swap-oob="innerHTML">{% include "partials/log_sheet.html" %}</div>
 <div id="toast" class="toast-slot" hx-swap-oob="true">
   {% if toast_entry %}
   <div class="toast glass-strong is-popover" x-data x-init="setTimeout(() => $el.remove(), {{ 12000 if toast_detail else 6000 }})">

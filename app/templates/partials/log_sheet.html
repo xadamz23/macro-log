@@ -3,8 +3,7 @@
   <div x-show="!step">
     {% if quick_foods or recent %}
     {% set quick_names = quick_foods|map(attribute="name")|map("lower")|list %}
-    {% set recent_names = recent|map(attribute="name")|map("lower")|list %}
-    <div x-data="foodSearch">
+    <div x-data="foodSearch" @open-log.window="q = ''">
       <input type="search" class="glass-input food-search" placeholder="Search foods" aria-label="Search foods" autocomplete="off" x-model="q">
       {% if quick_foods %}
       <div x-show='any({{ quick_names|tojson }})'>
@@ -15,10 +14,11 @@
       </div>
       {% endif %}
       {% include "partials/recent_foods.html" %}
-      <p class="empty food-search-empty" x-show='!any({{ (quick_names + recent_names)|tojson }})' x-cloak>No matches.</p>
+      <p class="empty food-search-empty" x-show="noMatches()" x-cloak>No matches.</p>
     </div>
     {% endif %}
     <div class="section-label">Add manually</div>
     {% include "partials/entry_form.html" %}
+    <template id="entry-form-blank">{% include "partials/entry_form.html" %}</template>
   </div>
 </div>
