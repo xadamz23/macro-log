@@ -20,6 +20,7 @@ def settings(tmp_path):
         app_tz="America/Chicago",
         cf_access_team_domain=None,
         cf_access_aud=None,
+        anthropic_api_key=None,
     )
 
 

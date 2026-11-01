@@ -2,6 +2,7 @@ from datetime import date
 
 from sqlalchemy import func, select
 
+from app.deps import get_macro_estimator
 from app.models import Entry, QuickFood
 from app.services.entries import create_entry, list_entries
 from app.services.foods import create_quick_food
@@ -155,9 +156,11 @@ def test_log_sheet_without_foods_has_no_search(client):
     assert 'type="search"' not in r.text
 
 
-def test_log_sheet_offers_photo_to_ai(client):
+def test_log_sheet_offers_logging_from_a_photo(app, client):
+    app.dependency_overrides[get_macro_estimator] = lambda: object()
     r = client.get(f"/log-sheet?day={TODAY.isoformat()}")
-    assert 'x-data="photoShare" @open-log.window="reset()"' in r.text
-    assert "Ask AI from a photo" in r.text
+    assert 'x-data="photoLog" @open-log.window="reset()"' in r.text
+    assert "Log from a photo" in r.text
+    assert 'hx-post="/entries/photo"' in r.text
     assert 'capture="environment"' in r.text and "Choose a photo" in r.text
     assert 'id="entry-form"' in r.text

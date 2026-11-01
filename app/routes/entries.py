@@ -1,10 +1,11 @@
 from datetime import date
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
+from starlette.datastructures import UploadFile
 
-from app.deps import DB, TZ, Today
-from app.forms import form_values, parse_macro_form, parse_servings, parse_text
+from app.deps import DB, TZ, Estimator, Today
+from app.forms import fmt_num, form_values, parse_macro_form, parse_servings, parse_text
 from app.services.entries import create_entry, delete_entry, get_entry, log_quick_food, update_entry
 from app.services.foods import (
     create_quick_food,
@@ -13,10 +14,14 @@ from app.services.foods import (
     list_quick_foods_by_recent_use,
     recent_foods,
 )
+from app.services.photo_macros import EstimateError
 from app.templating import templates
 from app.views import day_context
 
 router = APIRouter()
+
+PHOTO_MAX_BYTES = 10 * 1024 * 1024
+PHOTO_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 
 
 def _parse_day(raw, today: date) -> date:
@@ -27,9 +32,20 @@ def _parse_day(raw, today: date) -> date:
     return min(day, today)
 
 
-def _refresh(request: Request, db, day: date, today: date, tz: str, *, toast_entry=None, headers=None):
-    context = {**day_context(db, day, today), "tz": tz, "oob": True, "toast_entry": toast_entry}
+def _refresh(request: Request, db, day: date, today: date, tz: str, *, toast_entry=None, toast_detail=None, headers=None):
+    context = {
+        **day_context(db, day, today),
+        "tz": tz,
+        "oob": True,
+        "toast_entry": toast_entry,
+        "toast_detail": toast_detail,
+    }
     return templates.TemplateResponse(request, "partials/day_refresh.html", context, headers=headers)
+
+
+def _photo_error(message: str, status_code: int) -> PlainTextResponse:
+    """app.js shows the X-Error-Message header as the error toast."""
+    return PlainTextResponse(message, status_code=status_code, headers={"X-Error-Message": message})
 
 
 def _entry_or_404(db, entry_id: int):
@@ -45,11 +61,12 @@ def _day_value(raw, day: date) -> str:
 
 
 @router.get("/log-sheet", response_class=HTMLResponse)
-def log_sheet(request: Request, db: DB, today: Today, day: str = ""):
+def log_sheet(request: Request, db: DB, today: Today, estimator: Estimator, day: str = ""):
     parsed = _parse_day(day, today)
     context = {
         "day": parsed,
         "day_value": _day_value(day, parsed),
+        "photo_enabled": estimator is not None,
         "quick_foods": list_quick_foods_by_recent_use(db),
         "recent": recent_foods(db, today),
         "values": {},
@@ -93,6 +110,42 @@ async def create_entry_route(request: Request, db: DB, tz: TZ, today: Today):
         quick_food_id = create_quick_food(db, name=name, serving_label=serving_label, macros=form.macros).id
     entry = create_entry(db, day=day, macros=form.macros, name=name, quick_food_id=quick_food_id)
     return _refresh(request, db, day, today, tz, toast_entry=entry, headers={"HX-Trigger": "entry-logged"})
+
+
+@router.post("/entries/photo", response_class=HTMLResponse)
+async def create_entry_from_photo(request: Request, db: DB, tz: TZ, today: Today, estimator: Estimator):
+    if estimator is None:
+        raise HTTPException(status_code=404, detail="Logging from a photo isn't set up")
+    data = await request.form()
+    photo = data.get("photo")
+    if not isinstance(photo, UploadFile):
+        return _photo_error("Add a photo first.", 400)
+    if photo.content_type not in PHOTO_TYPES:
+        return _photo_error("That image format isn't supported. Try a JPEG or PNG.", 415)
+    image = await photo.read(PHOTO_MAX_BYTES + 1)
+    if not image:
+        return _photo_error("Add a photo first.", 400)
+    if len(image) > PHOTO_MAX_BYTES:
+        return _photo_error("That photo is too large.", 413)
+    description, description_error = parse_text(data, "what", max_len=500)
+    if description_error:
+        return _photo_error("That description is too long.", 400)
+
+    try:
+        estimate = await estimator(image, photo.content_type, description, data.get("fork") == "on")
+    except EstimateError as err:
+        return _photo_error(str(err), 502)
+
+    macros = estimate.macros
+    day = _parse_day(data.get("day"), today)
+    entry = create_entry(db, day=day, macros=macros, name=(description or estimate.name)[:100])
+    detail = (
+        f"{macros.calories} kcal, P {fmt_num(macros.protein)} / F {fmt_num(macros.fat)} / C {fmt_num(macros.carbs)}. "
+        f"{estimate.portion}"
+    )
+    return _refresh(
+        request, db, day, today, tz, toast_entry=entry, toast_detail=detail, headers={"HX-Trigger": "entry-logged"}
+    )
 
 
 @router.post("/quick-foods/{food_id}/log", response_class=HTMLResponse)

@@ -1,5 +1,5 @@
-<div x-data="photoShare" @open-log.window="reset()">
-  {% include "partials/photo_share.html" %}
+<div x-data="photoLog" @open-log.window="reset()">
+  {% if photo_enabled %}{% include "partials/photo_log.html" %}{% endif %}
   <div x-show="!step">
     {% if quick_foods or recent %}
     {% set quick_names = quick_foods|map(attribute="name")|map("lower")|list %}

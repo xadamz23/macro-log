@@ -1,0 +1,51 @@
+<button type="button" class="photo-row glass" x-show="!step" @click="step = 'pick'">
+  <span class="photo-ico">{{ icon("camera") }}</span>
+  <span class="photo-row-text">
+    <span class="row-title">Log from a photo</span>
+    <span class="row-sub">Snap your plate and Claude works out the macros</span>
+  </span>
+</button>
+
+<div class="stack" x-show="step" x-cloak>
+  <div class="photo-head">
+    <button type="button" class="icon-btn btn-glass" @click="back()" :disabled="busy" aria-label="Back">‹</button>
+    <div class="section-label">Log from a photo</div>
+  </div>
+
+  <div class="stack" x-show="step === 'pick'">
+    <p class="hint">Get the whole plate in frame, with a fork beside it for scale.</p>
+    <div class="photo-picks">
+      <button type="button" class="photo-pick glass" @click="$refs.camera.click()">
+        <span class="photo-ico">{{ icon("camera") }}</span>
+        <span class="row-title">Take a photo</span>
+      </button>
+      <button type="button" class="photo-pick glass" @click="$refs.library.click()">
+        <span class="photo-ico">{{ icon("image") }}</span>
+        <span class="row-title">Choose a photo</span>
+      </button>
+    </div>
+    <input type="file" accept="image/*" capture="environment" class="photo-file" x-ref="camera" tabindex="-1" aria-hidden="true" @change="choose($event)">
+    <input type="file" accept="image/*" class="photo-file" x-ref="library" tabindex="-1" aria-hidden="true" @change="choose($event)">
+  </div>
+
+  <form class="stack" x-show="step === 'preview'" hx-post="/entries/photo" hx-encoding="multipart/form-data" hx-swap="none" hx-sync="this:drop"
+        @htmx:config-request="attach($event)" @htmx:before-request="busy = true" @htmx:after-request="busy = false">
+    <input type="hidden" name="day" value="{{ day_value }}">
+    <div class="photo-shot">
+      <img :src="url" alt="Your food photo">
+      <button type="button" class="btn btn-glass photo-retake" @click="step = 'pick'" :disabled="busy">Retake</button>
+    </div>
+    <div class="field">
+      <label for="photo-what">What is it?</label>
+      <input class="glass-input" id="photo-what" type="text" name="what" maxlength="500" autocomplete="off" x-model="what"
+             placeholder="e.g. chicken burrito bowl with rice and guac">
+    </div>
+    <label class="toggle">
+      <span>There's a fork in the photo for scale</span>
+      <input type="checkbox" name="fork" value="on" x-model="fork">
+      <span class="toggle-track" aria-hidden="true"></span>
+    </label>
+    <button type="submit" class="btn accent btn-block" :disabled="busy" :aria-busy="busy"
+            x-text="busy ? 'Working out the macros…' : 'Log it'">Log it</button>
+  </form>
+</div>

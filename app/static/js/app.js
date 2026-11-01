@@ -11,15 +11,17 @@ function showToast(message, isError) {
 }
 
 document.addEventListener("htmx:responseError", (event) => {
-  showToast(`Something went wrong (${event.detail.xhr.status})`, true);
+  const { xhr } = event.detail;
+  showToast(xhr.getResponseHeader("X-Error-Message") || `Something went wrong (${xhr.status})`, true);
 });
 document.addEventListener("htmx:sendError", () => {
   showToast("Network error, check your connection", true);
 });
 
-// A small copy of a photo for on-screen preview. A full-size camera photo (12 MP is ~48 MB decoded) inside the
-// blurred sheet made iOS drop and repaint it, so the sheet flickered. The original is still what gets shared.
-async function previewUrl(file, maxSide = 1200) {
+// A smaller JPEG copy of a photo, used for both the preview and the upload. A full-size camera photo (12 MP is ~48 MB
+// decoded) inside the blurred sheet made iOS drop and repaint it, so the sheet flickered. Claude doesn't use more
+// detail than this, and it converts formats the API won't take, such as HEIC.
+async function shrinkPhoto(file, maxSide = 1568) {
   const full = URL.createObjectURL(file);
   try {
     const img = new Image();
@@ -31,9 +33,9 @@ async function previewUrl(file, maxSide = 1200) {
     canvas.height = Math.round(img.naturalHeight * scale);
     canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
     const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
-    return URL.createObjectURL(blob);
+    return blob || file;
   } catch {
-    return URL.createObjectURL(file); // couldn't decode it here; show the original
+    return file; // couldn't decode it here; send the original and let the server decide
   } finally {
     URL.revokeObjectURL(full);
   }
@@ -82,86 +84,43 @@ document.addEventListener("alpine:init", () => {
     },
   }));
 
-  // Log sheet's "Ask AI from a photo": camera or library → preview → the OS share sheet, with a macros prompt.
-  // share() runs from the Share tap rather than the picker's change event, because iOS wants a fresh tap for it.
-  // Offered only on touch devices that can share files.
-  Alpine.data("photoShare", () => ({
-    supported: false,
+  // Log sheet's "Log from a photo": camera or library → preview → POST /entries/photo, where Claude estimates the
+  // macros and the entry is logged. Shown only when the server has an API key; the sheet closes on entry-logged, and
+  // on failure the photo and description stay so a retry is one tap.
+  Alpine.data("photoLog", () => ({
     step: null,
-    file: null,
+    picked: null,
+    upload: null,
     url: "",
     what: "",
     fork: true,
-    prompt: "",
-    edited: false,
-    showPrompt: false,
-    init() {
-      const probe = new File([""], "probe.jpg", { type: "image/jpeg" });
-      this.supported = matchMedia("(pointer: coarse)").matches && !!navigator.canShare?.({ files: [probe] });
-      this.prompt = this.buildPrompt();
-      this.$watch("what", () => this.syncPrompt());
-      this.$watch("fork", () => this.syncPrompt());
-    },
+    busy: false,
     destroy() {
       if (this.url) URL.revokeObjectURL(this.url);
-    },
-    buildPrompt() {
-      const what = this.what.trim();
-      const intro = [
-        "Estimate the macros for the food in this photo.",
-        this.fork ? "There's a regular dinner fork in the shot for scale." : "",
-        what ? `The food is: ${what}.` : "",
-      ].filter(Boolean).join(" ");
-      return `${intro}
-
-Reply with only the combined totals for everything in the photo, no per-item breakdown, in exactly this format:
-
-### Protein: __ g
-### Fat: __ g
-### Carbs: __ g
-### Kcal: __
-
-Then one short line with the portion size you assumed. Nothing else.`;
-    },
-    syncPrompt() {
-      if (!this.edited) this.prompt = this.buildPrompt();
-    },
-    resetPrompt() {
-      this.edited = false;
-      this.prompt = this.buildPrompt();
     },
     async choose(event) {
       const file = event.target.files[0];
       event.target.value = "";
       if (!file) return;
-      this.file = file;
-      const url = await previewUrl(file);
-      if (this.file !== file) return URL.revokeObjectURL(url); // another photo was picked meanwhile
+      this.picked = file;
+      const upload = await shrinkPhoto(file);
+      if (this.picked !== file) return; // another photo was picked meanwhile
       if (this.url) URL.revokeObjectURL(this.url);
-      this.url = url;
+      this.upload = upload;
+      this.url = URL.createObjectURL(upload);
       this.step = "preview";
+    },
+    // The file inputs have no name, so htmx leaves them out and the shrunk copy is added here instead.
+    attach(event) {
+      event.detail.formData.set("photo", this.upload, this.upload.name || "meal.jpg");
     },
     // The sheet shows its old body until the reload lands, so clear the photo before it slides back up.
     reset() {
       if (this.url) URL.revokeObjectURL(this.url);
-      Object.assign(this, { step: null, file: null, url: "", what: "", fork: true, edited: false, showPrompt: false });
-      this.prompt = this.buildPrompt();
+      Object.assign(this, { step: null, picked: null, upload: null, url: "", what: "", fork: true, busy: false });
     },
     back() {
       this.step = this.step === "preview" ? "pick" : null;
-    },
-    async share() {
-      // Some apps keep the photo and drop the text, so the prompt goes on the clipboard as well. Both calls start
-      // in the same tick: awaiting the copy first can cost share() the tap it needs.
-      navigator.clipboard?.writeText(this.prompt).then(
-        () => showToast("Prompt copied. Paste it if your app drops it."),
-        () => {},
-      );
-      try {
-        await navigator.share({ files: [this.file], text: this.prompt });
-      } catch (err) {
-        if (err.name !== "AbortError") showToast("Couldn't open the share sheet", true);
-      }
     },
   }));
 
