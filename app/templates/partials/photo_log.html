@@ -29,23 +29,27 @@
   </div>
 
   <form class="stack" x-show="step === 'preview'" hx-post="/entries/photo" hx-encoding="multipart/form-data" hx-swap="none" hx-sync="this:drop"
-        @htmx:config-request="attach($event)" @htmx:before-request="busy = true" @htmx:after-request="busy = false">
+        @htmx:config-request="attach($event)" @htmx:before-request="startWaiting()" @htmx:after-request="stopWaiting()">
     <input type="hidden" name="day" value="{{ day_value }}">
-    <div class="photo-shot">
+    <div class="photo-shot" :class="busy && 'is-busy'">
       <img :src="url" alt="Your food photo">
-      <button type="button" class="btn btn-glass photo-retake" @click="step = 'pick'" :disabled="busy">Retake</button>
+      <template x-if="busy"><div class="photo-scan" aria-hidden="true"></div></template>
+      <button type="button" class="btn btn-glass photo-retake" x-show="!busy" @click="step = 'pick'">Retake</button>
+      <div class="photo-status" role="status" x-show="busy"><span class="photo-spinner" aria-hidden="true"></span><span x-text="waitMessage"></span></div>
     </div>
-    <div class="field">
-      <label for="photo-what">What is it?</label>
-      <input class="glass-input" id="photo-what" type="text" name="what" maxlength="500" autocomplete="off" x-model="what"
-             placeholder="e.g. chicken burrito bowl with rice and guac">
+    <div class="stack photo-fields" :class="busy && 'is-busy'" :inert="busy">
+      <div class="field">
+        <label for="photo-what">What is it?</label>
+        <input class="glass-input" id="photo-what" type="text" name="what" maxlength="500" autocomplete="off" x-model="what"
+               placeholder="e.g. chicken burrito bowl with rice and guac">
+      </div>
+      <label class="toggle">
+        <span>There's a fork in the photo for scale</span>
+        <input type="checkbox" name="fork" value="on" x-model="fork">
+        <span class="toggle-track" aria-hidden="true"></span>
+      </label>
     </div>
-    <label class="toggle">
-      <span>There's a fork in the photo for scale</span>
-      <input type="checkbox" name="fork" value="on" x-model="fork">
-      <span class="toggle-track" aria-hidden="true"></span>
-    </label>
     <button type="submit" class="btn accent btn-block" :disabled="busy" :aria-busy="busy"
-            x-text="busy ? 'Working out the macros…' : 'Log it'">Log it</button>
+            x-text="busy ? waitMessage : 'Log it'">Log it</button>
   </form>
 </div>

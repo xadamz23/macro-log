@@ -95,8 +95,22 @@ document.addEventListener("alpine:init", () => {
     what: "",
     fork: true,
     busy: false,
+    waitMessage: "",
+    waitTimer: null,
     destroy() {
+      clearTimeout(this.waitTimer);
       if (this.url) URL.revokeObjectURL(this.url);
+    },
+    startWaiting() {
+      this.busy = true;
+      this.waitMessage = "Estimating macros…";
+      this.waitTimer = setTimeout(() => {
+        this.waitMessage = "Still working, almost there…";
+      }, 10000);
+    },
+    stopWaiting() {
+      clearTimeout(this.waitTimer);
+      this.busy = false;
     },
     async choose(event) {
       const file = event.target.files[0];
@@ -116,8 +130,9 @@ document.addEventListener("alpine:init", () => {
     },
     // The sheet shows its old body until the reload lands, so clear the photo before it slides back up.
     reset() {
+      this.stopWaiting();
       if (this.url) URL.revokeObjectURL(this.url);
-      Object.assign(this, { step: null, picked: null, upload: null, url: "", what: "", fork: true, busy: false });
+      Object.assign(this, { step: null, picked: null, upload: null, url: "", what: "", fork: true });
     },
     back() {
       this.step = this.step === "preview" ? "pick" : null;

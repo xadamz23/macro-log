@@ -442,7 +442,38 @@ textarea { resize: vertical; }
 }
 .photo-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .photo-retake { position: absolute; right: 8px; bottom: 8px; min-height: 36px; padding: 4px 12px; font-size: 0.85rem; background: rgb(var(--chrome) / 0.8); }
-.btn.accent:disabled { opacity: 0.7; cursor: progress; }
+/* While Claude estimates: a light sweeps over the dimmed photo. The sweep moves by transform, so it doesn't repaint
+   the blurred sheet. */
+.photo-shot img { transition: filter 0.25s; }
+.photo-shot.is-busy img { filter: brightness(0.62) saturate(0.75); }
+.photo-scan { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.photo-scan::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 45%;
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--accent) 30%, transparent) 88%, var(--accent));
+  animation: photo-sweep 2.2s ease-in-out infinite alternate;
+}
+@keyframes photo-sweep { from { transform: translateY(-100%); } to { transform: translateY(222%); } }
+.photo-status {
+  position: absolute; left: 8px; bottom: 8px; max-width: calc(100% - 16px);
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgb(var(--chrome) / 0.85);
+  font-size: 0.85rem; font-weight: 600;
+}
+.photo-spinner {
+  flex-shrink: 0; width: 14px; height: 14px;
+  border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.35); border-top-color: var(--accent);
+  animation: photo-spin 0.8s linear infinite;
+}
+@keyframes photo-spin { to { transform: rotate(360deg); } }
+.photo-fields { transition: opacity 0.2s; }
+.photo-fields.is-busy { opacity: 0.5; }
+.btn.accent:disabled { opacity: 0.85; cursor: progress; }
+@media (prefers-reduced-motion: reduce) {
+  .photo-scan::before { display: none; }
+  .photo-spinner { animation: none; border-color: var(--accent); }
+}
 
 /* Toast */
 .toast-slot {
