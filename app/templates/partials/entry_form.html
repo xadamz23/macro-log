@@ -1,4 +1,5 @@
-<form id="entry-form" class="card glass stack" hx-post="/entries" hx-swap="none" x-data="macroForm">
+<form id="entry-form" class="card glass stack" hx-post="/entries" hx-swap="none" hx-sync="this:drop"
+      hx-disabled-elt="find button[type='submit']" x-data="macroForm">
   <input type="hidden" name="day" value="{{ day_value }}">
   {% if errors.form %}<p class="error">{{ errors.form }}</p>{% endif %}
   <div class="field{% if errors.name %} invalid{% endif %}">

@@ -142,6 +142,22 @@ def test_today_page_has_sheet(client):
     assert 'id="log-sheet-body"' in r.text and 'id="entry-form"' in r.text
 
 
+def test_closing_sheet_ignores_taps(client):
+    """The sheet stays on screen while it slides away; inert keeps a tap then from logging again."""
+    assert ':inert="!open"' in client.get("/").text
+
+
+def test_entry_form_drops_a_second_submit(client):
+    guard = 'hx-sync="this:drop"'
+    disable = "hx-disabled-elt=\"find button[type='submit']\""
+    page = client.get("/").text
+    # Both the live form and the blank copy show() swaps in.
+    assert page.count(guard) >= 2 and page.count(disable) >= 2
+    r = client.post("/entries", data={"calories": "abc"})
+    assert r.status_code == 422
+    assert guard in r.text and disable in r.text
+
+
 def test_log_sheet_search_filters_tiles_by_name(client, db):
     create_quick_food(db, name="Greek Yogurt", serving_label="", macros=Macros(100))
     create_entry(db, day=TODAY, macros=Macros(300, 30, 10, 20), name="Chicken Bowl")
