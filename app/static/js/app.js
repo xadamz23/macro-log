@@ -163,6 +163,10 @@ document.addEventListener("alpine:init", () => {
       this.$root.querySelector("#entry-form").replaceWith(blank);
       htmx.process(blank);
       this.open = true;
+      // x-show only hides the sheet, so it would reopen where it was last scrolled.
+      this.$nextTick(() => {
+        this.$refs.sheet.scrollTop = 0;
+      });
     },
     hide() {
       this.open = false;
