@@ -75,9 +75,10 @@
     <div class="stack photo-fields" :class="busy && 'is-busy'" :inert="busy">
       <div class="field">
         <div class="field-head"><label for="photo-what">What is it?</label>{{ listen_badge() }}</div>
-        <div class="dictate-box is-line" :class="listening && 'is-listening'">
-          <input class="glass-input" id="photo-what" type="text" name="what" maxlength="500" autocomplete="off" x-model="what"
-                 :placeholder="listening ? 'Listening…' : 'e.g. chicken burrito bowl with rice and guac'">
+        <div class="dictate-box" :class="listening && 'is-listening'">
+          <textarea class="glass-input" id="photo-what" name="what" rows="3" maxlength="500" autocomplete="off" x-model="what"
+                    :placeholder="listening ? 'Listening…' : 'e.g. chicken burrito bowl with rice and guac'"
+                    @keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); $el.form.requestSubmit() }"></textarea>
           {{ dictate_button() }}
         </div>
       </div>

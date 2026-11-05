@@ -472,7 +472,7 @@ textarea { resize: vertical; }
 .segmented.is-full button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; border-radius: 10px; font-size: 0.9rem; }
 .segmented.is-full svg { width: 18px; height: 18px; }
 .describe-box { position: relative; }
-.describe-box textarea { display: block; min-height: 104px; resize: none; line-height: 1.4; }
+.dictate-box textarea { display: block; min-height: 104px; resize: none; line-height: 1.4; }
 /* While Claude estimates a description: the box takes the accent border, the text dims, a light sweeps across it, and
    the same status pill as the photo shows in its corner. Like the photo's, the sweep moves by transform only. */
 .describe-box.is-busy textarea { border-color: var(--accent); color: var(--muted); }
@@ -496,7 +496,6 @@ textarea { resize: vertical; }
 .dictate-box.is-listening::after { animation: listen-breathe 1.6s ease-in-out infinite; }
 @keyframes listen-breathe { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
 .dictate { position: absolute; right: 8px; bottom: 8px; }
-.dictate-box.is-line .dictate { right: 4px; bottom: 4px; }
 /* The icon and "Done" each sit in a span so x-show can swap them; as inline boxes the icon sat on the text baseline. */
 .dictate > span { display: grid; place-items: center; }
 .dictate svg { display: block; width: 18px; height: 18px; }
