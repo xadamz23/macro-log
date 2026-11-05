@@ -497,7 +497,9 @@ textarea { resize: vertical; }
 @keyframes listen-breathe { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
 .dictate { position: absolute; right: 8px; bottom: 8px; }
 .dictate-box.is-line .dictate { right: 4px; bottom: 4px; }
-.dictate svg { width: 18px; height: 18px; }
+/* The icon and "Done" each sit in a span so x-show can swap them; as inline boxes the icon sat on the text baseline. */
+.dictate > span { display: grid; place-items: center; }
+.dictate svg { display: block; width: 18px; height: 18px; }
 .dictate.is-listening { min-height: 36px; padding: 0 16px; border-radius: 999px; font-size: 0.85rem; }
 .dictate.is-listening::before, .dictate.is-listening::after {
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
