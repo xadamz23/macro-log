@@ -97,19 +97,23 @@ document.addEventListener("alpine:init", () => {
   const DICTATE_SILENCE_MS = 10000;
   const DICTATE_MAX_MS = 120000;
   const DICTATE_FATAL = new Set(["not-allowed", "service-not-allowed", "audio-capture", "language-not-supported"]);
-  // Joins one session's results into its text. In continuous mode Chrome on Android repeats earlier phrases in later
-  // results ("a coke", "a coke and fries"), so a result that starts with the one before replaces it rather than adding.
-  function joinResults(results) {
-    const parts = [];
-    for (const result of results) {
-      const text = result[0].transcript.replace(/\s+/g, " ").trim();
-      if (!text) continue;
-      const last = parts.at(-1);
-      if (last !== undefined && text.toLowerCase().startsWith(last.toLowerCase())) parts[parts.length - 1] = text;
-      else parts.push(text);
+  // Adds a spoken phrase to the text, keeping words they overlap on once. In continuous mode Chrome on Android repeats
+  // earlier words in later results, in whole ("a coke", "a coke and fries"), in part ("a large coke", "large coke and
+  // fries") or as the same phrase again, so the longest run of words that ends `text` and starts `next` is dropped from
+  // `next`. Words are compared without case or punctuation.
+  const wordKey = (word) => word.toLowerCase().replace(/[^\p{L}\p{N}']/gu, "");
+  function mergeSpoken(text, next) {
+    const have = text.split(" ").filter(Boolean);
+    const add = next.replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+    const haveKeys = have.map(wordKey);
+    const addKeys = add.map(wordKey);
+    for (let k = Math.min(have.length, add.length); k > 0; k--) {
+      if (haveKeys.slice(-k).every((key, i) => key === addKeys[i])) return [...have, ...add.slice(k)].join(" ");
     }
-    return parts.join(" ");
+    return [...have, ...add].join(" ");
   }
+  // One session's results as text; each result event carries every result of the session so far.
+  const joinResults = (results) => [...results].reduce((text, result) => mergeSpoken(text, result[0].transcript), "");
   Alpine.data("claudeLog", () => ({
     step: null, // null (row in the sheet) → "pick" → "preview" (photo only) → "check"
     mode: "photo",
@@ -194,11 +198,11 @@ document.addEventListener("alpine:init", () => {
       this.listening = true;
       this.armSilence();
       this.capTimer = setTimeout(() => this.stopDictating(), DICTATE_MAX_MS);
-      this.listen();
+      this.listen(true);
     },
     // One recognition session. Browsers still end a continuous session on their own now and then (a long silence, a
     // network blip), so an end nobody asked for starts a fresh session that carries on from the text so far.
-    listen() {
+    listen(first = false) {
       const recognizer = new SpeechRecognition();
       recognizer.lang = navigator.language || "en-US";
       recognizer.continuous = true;
@@ -209,9 +213,13 @@ document.addEventListener("alpine:init", () => {
       const session = ++this.session;
       const startedAt = Date.now();
       let fatal = false;
+      let heard = false;
       recognizer.onresult = (event) => {
         if (this.session !== session) return;
-        this.what = [before, joinResults(event.results)].filter(Boolean).join(" ");
+        const said = joinResults(event.results);
+        if (said) heard = true;
+        // Merged with `before` too, as a restarted session can open by repeating what the last one ended on.
+        this.what = mergeSpoken(before, said);
         if (this.listening) this.armSilence();
       };
       recognizer.onerror = (event) => {
@@ -224,8 +232,10 @@ document.addEventListener("alpine:init", () => {
         if (this.session !== session) return;
         this.recognizer = null;
         // Carry on unless Done was tapped or the mic can't work. A session that ended within a second would only end
-        // again, so that stops too rather than restarting in a loop.
-        if (this.listening && !fatal && Date.now() - startedAt > 1000) this.listen();
+        // again, so that stops too rather than restarting in a loop. Android beeps on every start and ends a session
+        // after a few quiet seconds, so only a session that heard words (or the first, to give time to start talking)
+        // is restarted: a pause costs one beep, and if the next session hears nothing either, dictation ends.
+        if (this.listening && !fatal && Date.now() - startedAt > 1000 && (heard || first)) this.listen();
         else this.endDictation();
       };
       this.recognizer = recognizer;
