@@ -471,8 +471,18 @@ textarea { resize: vertical; }
 .segmented.is-full { display: grid; grid-template-columns: 1fr 1fr; width: 100%; margin-bottom: 0; border-radius: 14px; }
 .segmented.is-full button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; border-radius: 10px; font-size: 0.9rem; }
 .segmented.is-full svg { width: 18px; height: 18px; }
-.describe-field { position: relative; }
-.describe-field textarea { min-height: 104px; padding-right: 56px; resize: none; line-height: 1.4; }
+.describe-box { position: relative; }
+.describe-box textarea { display: block; min-height: 104px; padding-right: 56px; resize: none; line-height: 1.4; }
+/* While Claude estimates a description: the box takes the accent border, the text dims, a light sweeps across it, and
+   the same status pill as the photo shows in its corner. Like the photo's, the sweep moves by transform only. */
+.describe-box.is-busy textarea { border-color: var(--accent); color: var(--muted); }
+.describe-scan { position: absolute; inset: 0; overflow: hidden; border-radius: 10px; pointer-events: none; }
+.describe-scan::before {
+  content: ""; position: absolute; inset: 0 auto 0 0; width: 60%;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 24%, transparent), transparent);
+  animation: describe-sweep 1.6s ease-in-out infinite;
+}
+@keyframes describe-sweep { from { transform: translateX(-100%); } to { transform: translateX(170%); } }
 .dictate { position: absolute; right: 8px; bottom: 8px; }
 .dictate svg { width: 18px; height: 18px; }
 /* Claude's estimate, shown for a check before it's logged. */
@@ -488,7 +498,7 @@ textarea { resize: vertical; }
 .photo-fields.is-busy { opacity: 0.5; }
 .btn.accent:disabled { opacity: 0.85; cursor: progress; }
 @media (prefers-reduced-motion: reduce) {
-  .photo-scan::before { display: none; }
+  .photo-scan::before, .describe-scan::before { display: none; }
   .photo-spinner { animation: none; border-color: var(--accent); }
 }
 

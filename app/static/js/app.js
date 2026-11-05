@@ -114,25 +114,12 @@ document.addEventListener("alpine:init", () => {
       if (this.url) URL.revokeObjectURL(this.url);
     },
     start() {
-      try {
-        this.mode = localStorage.getItem("claudeLogMode") === "describe" ? "describe" : "photo";
-      } catch {
-        // storage blocked: keep the default
-      }
+      this.mode = "photo";
       this.step = "pick";
-      this.focusDescribe();
     },
     setMode(mode) {
       this.mode = mode;
-      try {
-        localStorage.setItem("claudeLogMode", mode);
-      } catch {
-        // storage blocked: the mode just isn't remembered
-      }
-      this.focusDescribe();
-    },
-    focusDescribe() {
-      if (this.mode === "describe") this.$nextTick(() => this.$refs.describe.focus());
+      if (mode === "describe") this.$nextTick(() => this.$refs.describe.focus());
     },
     startWaiting() {
       this.stopDictating();

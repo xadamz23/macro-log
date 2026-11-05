@@ -13,8 +13,8 @@
   </div>
 
   <div class="segmented glass is-full" role="group" aria-label="Log from" x-show="step === 'pick'">
-    <button type="button" :class="mode === 'photo' && 'accent'" :aria-pressed="mode === 'photo'" @click="setMode('photo')">{{ icon("camera") }}Photo</button>
-    <button type="button" :class="mode === 'describe' && 'accent'" :aria-pressed="mode === 'describe'" @click="setMode('describe')">{{ icon("chat") }}Describe</button>
+    <button type="button" :class="mode === 'photo' && 'accent'" :aria-pressed="mode === 'photo'" :disabled="busy" @click="setMode('photo')">{{ icon("camera") }}Photo</button>
+    <button type="button" :class="mode === 'describe' && 'accent'" :aria-pressed="mode === 'describe'" :disabled="busy" @click="setMode('describe')">{{ icon("chat") }}Describe</button>
   </div>
 
   <div class="stack" x-show="step === 'pick' && mode === 'photo'">
@@ -37,13 +37,17 @@
   <form class="stack" x-show="step === 'pick' && mode === 'describe'" hx-post="/entries/estimate" hx-target="#claude-estimate"
         hx-swap="innerHTML" hx-sync="this:drop" @htmx:before-request="startWaiting()" @htmx:after-request="finished($event)">
     <input type="hidden" name="day" value="{{ day_value }}">
-    <div class="field describe-field photo-fields" :class="busy && 'is-busy'" :inert="busy">
+    <div class="field">
       <label for="claude-what">What did you have?</label>
-      <textarea class="glass-input" id="claude-what" name="what" rows="3" maxlength="500" autocomplete="off" x-model="what"
-                x-ref="describe" placeholder="e.g. large coke from mcdonalds"
-                @keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); $el.form.requestSubmit() }"></textarea>
-      <button type="button" class="icon-btn btn-glass dictate" x-show="canDictate" x-cloak @click="dictate()"
-              :class="listening && 'accent'" :aria-pressed="listening" aria-label="Dictate">{{ icon("mic") }}</button>
+      <div class="describe-box" :class="busy && 'is-busy'" :inert="busy">
+        <textarea class="glass-input" id="claude-what" name="what" rows="3" maxlength="500" autocomplete="off" x-model="what"
+                  x-ref="describe" placeholder="e.g. large coke from mcdonalds"
+                  @keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); $el.form.requestSubmit() }"></textarea>
+        <button type="button" class="icon-btn btn-glass dictate" x-show="canDictate && !busy" x-cloak @click="dictate()"
+                :class="listening && 'accent'" :aria-pressed="listening" aria-label="Dictate">{{ icon("mic") }}</button>
+        <template x-if="busy"><div class="describe-scan" aria-hidden="true"></div></template>
+        <div class="photo-status" role="status" x-show="busy" x-cloak><span class="photo-spinner" aria-hidden="true"></span><span x-text="waitMessage"></span></div>
+      </div>
     </div>
     <button type="submit" class="btn accent btn-block" :disabled="busy || !what.trim()" :aria-busy="busy"
             x-text="busy ? waitMessage : 'Estimate'">Estimate</button>
