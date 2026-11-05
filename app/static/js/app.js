@@ -94,6 +94,22 @@ document.addEventListener("alpine:init", () => {
   // manual form, and "Edit" copies it into the manual form. Shown only when the server has an API key. On a failed
   // estimate the photo and text stay, so a retry is one tap.
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const DICTATE_SILENCE_MS = 10000;
+  const DICTATE_MAX_MS = 120000;
+  const DICTATE_FATAL = new Set(["not-allowed", "service-not-allowed", "audio-capture", "language-not-supported"]);
+  // Joins one session's results into its text. In continuous mode Chrome on Android repeats earlier phrases in later
+  // results ("a coke", "a coke and fries"), so a result that starts with the one before replaces it rather than adding.
+  function joinResults(results) {
+    const parts = [];
+    for (const result of results) {
+      const text = result[0].transcript.replace(/\s+/g, " ").trim();
+      if (!text) continue;
+      const last = parts.at(-1);
+      if (last !== undefined && text.toLowerCase().startsWith(last.toLowerCase())) parts[parts.length - 1] = text;
+      else parts.push(text);
+    }
+    return parts.join(" ");
+  }
   Alpine.data("claudeLog", () => ({
     step: null, // null (row in the sheet) → "pick" → "preview" (photo only) → "check"
     mode: "photo",
@@ -108,9 +124,12 @@ document.addEventListener("alpine:init", () => {
     canDictate: Boolean(SpeechRecognition),
     listening: false,
     recognizer: null,
+    session: 0, // bumped per recognition session; Alpine proxies `recognizer`, so it can't be compared by identity
+    silenceTimer: null,
+    capTimer: null,
     destroy() {
       clearTimeout(this.waitTimer);
-      this.stopDictating();
+      this.cancelDictating();
       if (this.url) URL.revokeObjectURL(this.url);
     },
     start() {
@@ -118,11 +137,12 @@ document.addEventListener("alpine:init", () => {
       this.step = "pick";
     },
     setMode(mode) {
+      this.cancelDictating();
       this.mode = mode;
       if (mode === "describe") this.$nextTick(() => this.$refs.describe.focus());
     },
     startWaiting() {
-      this.stopDictating();
+      this.cancelDictating();
       this.busy = true;
       this.waitMessage = "Estimating macros…";
       this.waitTimer = setTimeout(() => {
@@ -163,50 +183,90 @@ document.addEventListener("alpine:init", () => {
       this.step = null;
       this.$nextTick(() => form.scrollIntoView({ block: "start", behavior: "smooth" }));
     },
+    // Dictation runs until Done, a pause of DICTATE_SILENCE_MS with no new words, or DICTATE_MAX_MS in all; a pause
+    // mid-sentence doesn't end it. `listening` is that intent, so the button flips to the mic the moment Done is tapped.
     dictate() {
       if (this.listening) {
         this.stopDictating();
         return;
       }
+      this.cancelDictating(); // a session still finishing after Done
+      this.listening = true;
+      this.armSilence();
+      this.capTimer = setTimeout(() => this.stopDictating(), DICTATE_MAX_MS);
+      this.listen();
+    },
+    // One recognition session. Browsers still end a continuous session on their own now and then (a long silence, a
+    // network blip), so an end nobody asked for starts a fresh session that carries on from the text so far.
+    listen() {
       const recognizer = new SpeechRecognition();
       recognizer.lang = navigator.language || "en-US";
+      recognizer.continuous = true;
       // Interim results stream the words into the field as they're said, so it's clear the mic is hearing you. Each
-      // result event carries the whole utterance so far, so it replaces what was said after `before` each time.
+      // result event carries the whole session so far, so it replaces what was said after `before` each time.
       recognizer.interimResults = true;
       const before = this.what.trim();
+      const session = ++this.session;
+      const startedAt = Date.now();
+      let fatal = false;
       recognizer.onresult = (event) => {
-        const said = [...event.results].map((result) => result[0].transcript).join(" ").replace(/\s+/g, " ").trim();
-        this.what = [before, said].filter(Boolean).join(" ");
+        if (this.session !== session) return;
+        this.what = [before, joinResults(event.results)].filter(Boolean).join(" ");
+        if (this.listening) this.armSilence();
       };
       recognizer.onerror = (event) => {
+        if (DICTATE_FATAL.has(event.error)) fatal = true;
         if (event.error === "not-allowed" || event.error === "service-not-allowed") {
           showToast("Microphone access is off for this site", true);
         }
       };
       recognizer.onend = () => {
-        this.listening = false;
+        if (this.session !== session) return;
         this.recognizer = null;
+        // Carry on unless Done was tapped or the mic can't work. A session that ended within a second would only end
+        // again, so that stops too rather than restarting in a loop.
+        if (this.listening && !fatal && Date.now() - startedAt > 1000) this.listen();
+        else this.endDictation();
       };
       this.recognizer = recognizer;
-      this.listening = true;
       try {
         recognizer.start();
       } catch {
-        this.listening = false;
         this.recognizer = null;
+        this.endDictation();
       }
     },
+    armSilence() {
+      clearTimeout(this.silenceTimer);
+      this.silenceTimer = setTimeout(() => this.stopDictating(), DICTATE_SILENCE_MS);
+    },
+    endDictation() {
+      clearTimeout(this.silenceTimer);
+      clearTimeout(this.capTimer);
+      this.listening = false;
+    },
+    // Done, the silence timeout or the cap: stop listening, but let the last words still land in the field.
     stopDictating() {
+      this.endDictation();
       if (this.recognizer) this.recognizer.stop();
+    },
+    // The field is going away (submitted, sheet reset, step changed): drop anything still on its way.
+    cancelDictating() {
+      this.endDictation();
+      this.session++;
+      const recognizer = this.recognizer;
+      this.recognizer = null;
+      if (recognizer) recognizer.abort();
     },
     // The sheet keeps its body between opens, so clear everything before it slides back up.
     reset() {
       this.stopWaiting();
-      this.stopDictating();
+      this.cancelDictating();
       if (this.url) URL.revokeObjectURL(this.url);
       Object.assign(this, { step: null, picked: null, upload: null, url: "", what: "", fork: true });
     },
     back() {
+      this.cancelDictating();
       if (this.step === "check") this.step = this.upload && this.mode === "photo" ? "preview" : "pick";
       else this.step = this.step === "preview" ? "pick" : null;
     },
