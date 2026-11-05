@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse, PlainTextResponse
 from starlette.datastructures import UploadFile
 
 from app.deps import DB, TZ, Estimator, Today
-from app.forms import fmt_num, form_values, parse_macro_form, parse_servings, parse_text
+from app.forms import form_values, parse_macro_form, parse_servings, parse_text
 from app.services.entries import create_entry, delete_entry, get_entry, log_quick_food, update_entry
 from app.services.foods import (
     create_quick_food,
@@ -99,44 +99,47 @@ async def create_entry_route(request: Request, db: DB, tz: TZ, today: Today, est
     return _refresh(request, db, day, today, tz, estimator, toast_entry=entry, headers={"HX-Trigger": "entry-logged"})
 
 
-@router.post("/entries/photo", response_class=HTMLResponse)
-async def create_entry_from_photo(request: Request, db: DB, tz: TZ, today: Today, estimator: Estimator):
+@router.post("/entries/estimate", response_class=HTMLResponse)
+async def estimate_entry(request: Request, today: Today, estimator: Estimator):
+    """Claude's estimate for a photo, a description or both, shown for a check before it's logged through /entries."""
     if estimator is None:
-        raise HTTPException(status_code=404, detail="Logging from a photo isn't set up")
+        raise HTTPException(status_code=404, detail="Logging with Claude isn't set up")
     # Parsing spools the whole body to disk, so turn away an oversized one first.
     length = request.headers.get("content-length", "")
     if length.isdigit() and int(length) > PHOTO_MAX_BODY_BYTES:
         return _photo_error("That photo is too large.", 413)
     data = await request.form(max_files=1, max_fields=10)
-    photo = data.get("photo")
-    if not isinstance(photo, UploadFile):
-        return _photo_error("Add a photo first.", 400)
-    if photo.content_type not in PHOTO_TYPES:
-        return _photo_error("That image format isn't supported. Try a JPEG or PNG.", 415)
-    image = await photo.read(PHOTO_MAX_BYTES + 1)
-    if not image:
-        return _photo_error("Add a photo first.", 400)
-    if len(image) > PHOTO_MAX_BYTES:
-        return _photo_error("That photo is too large.", 413)
     description, description_error = parse_text(data, "what", max_len=500)
     if description_error:
         return _photo_error("That description is too long.", 400)
 
+    image = media_type = None
+    photo = data.get("photo")
+    if isinstance(photo, UploadFile):
+        if photo.content_type not in PHOTO_TYPES:
+            return _photo_error("That image format isn't supported. Try a JPEG or PNG.", 415)
+        image = await photo.read(PHOTO_MAX_BYTES + 1)
+        if not image:
+            return _photo_error("That photo is empty. Try another.", 400)
+        if len(image) > PHOTO_MAX_BYTES:
+            return _photo_error("That photo is too large.", 413)
+        media_type = photo.content_type
+    elif not description:
+        return _photo_error("Say what you had, or add a photo.", 400)
+
     try:
-        estimate = await estimator(image, photo.content_type, description, data.get("fork") == "on")
+        estimate = await estimator(image, media_type, description, image is not None and data.get("fork") == "on")
     except EstimateError as err:
         return _photo_error(str(err), 502)
 
-    macros = estimate.macros
     day = _parse_day(data.get("day"), today)
-    entry = create_entry(db, day=day, macros=macros, name=(description or estimate.name)[:100])
-    detail = (
-        f"{macros.calories} kcal, P {fmt_num(macros.protein)} / F {fmt_num(macros.fat)} / C {fmt_num(macros.carbs)}. "
-        f"{estimate.portion}"
-    )
-    return _refresh(
-        request, db, day, today, tz, estimator, toast_entry=entry, toast_detail=detail, headers={"HX-Trigger": "entry-logged"}
-    )
+    context = {
+        "estimate": estimate,
+        "name": (estimate.name or description)[:100],
+        "day_value": _day_value(data.get("day"), day),
+        "from_photo": image is not None,
+    }
+    return templates.TemplateResponse(request, "partials/claude_estimate.html", context)
 
 
 @router.post("/quick-foods/{food_id}/log", response_class=HTMLResponse)

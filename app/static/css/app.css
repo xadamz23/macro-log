@@ -467,6 +467,23 @@ textarea { resize: vertical; }
   animation: photo-spin 0.8s linear infinite;
 }
 @keyframes photo-spin { to { transform: rotate(360deg); } }
+/* Photo | Describe switch: full width, so each half is an easy tap. */
+.segmented.is-full { display: grid; grid-template-columns: 1fr 1fr; width: 100%; margin-bottom: 0; border-radius: 14px; }
+.segmented.is-full button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; border-radius: 10px; font-size: 0.9rem; }
+.segmented.is-full svg { width: 18px; height: 18px; }
+.describe-field { position: relative; }
+.describe-field textarea { min-height: 104px; padding-right: 56px; resize: none; line-height: 1.4; }
+.dictate { position: absolute; right: 8px; bottom: 8px; }
+.dictate svg { width: 18px; height: 18px; }
+/* Claude's estimate, shown for a check before it's logged. */
+.estimate { display: grid; gap: 4px; padding: 12px 14px; border-radius: 14px; }
+.estimate-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.estimate-kcal { color: var(--cal); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.estimate-macros { display: flex; gap: 14px; color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.estimate-macros b { font-weight: 700; }
+.m-protein { color: var(--protein); }
+.m-fat { color: var(--fat); }
+.m-carbs { color: var(--carbs); }
 .photo-fields { transition: opacity 0.2s; }
 .photo-fields.is-busy { opacity: 0.5; }
 .btn.accent:disabled { opacity: 0.85; cursor: progress; }

@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     cf_access_aud: str | None = None
     # Container name of this app's Tailscale sidecar; its tailnet users pass the access check without an Access token
     tailnet_proxy_host: str | None = None
-    # Blank hides logging from a photo
+    # Blank hides logging with Claude
     anthropic_api_key: str | None = None
     anthropic_model: str = "claude-opus-5-5"
 

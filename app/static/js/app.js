@@ -89,11 +89,14 @@ document.addEventListener("alpine:init", () => {
     },
   }));
 
-  // Log sheet's "Log from a photo": camera or library → preview → POST /entries/photo, where Claude estimates the
-  // macros and the entry is logged. Shown only when the server has an API key; the sheet closes on entry-logged, and
-  // on failure the photo and description stay so a retry is one tap.
-  Alpine.data("photoLog", () => ({
-    step: null,
+  // Log sheet's "Log with Claude". Photo mode: camera or library → preview; Describe mode: a text box. Either posts to
+  // /entries/estimate, and Claude's estimate comes back as a card to check: "Log it" posts it to /entries like the
+  // manual form, and "Edit" copies it into the manual form. Shown only when the server has an API key. On a failed
+  // estimate the photo and text stay, so a retry is one tap.
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  Alpine.data("claudeLog", () => ({
+    step: null, // null (row in the sheet) → "pick" → "preview" (photo only) → "check"
+    mode: "photo",
     picked: null,
     upload: null,
     url: "",
@@ -102,11 +105,37 @@ document.addEventListener("alpine:init", () => {
     busy: false,
     waitMessage: "",
     waitTimer: null,
+    canDictate: Boolean(SpeechRecognition),
+    listening: false,
+    recognizer: null,
     destroy() {
       clearTimeout(this.waitTimer);
+      this.stopDictating();
       if (this.url) URL.revokeObjectURL(this.url);
     },
+    start() {
+      try {
+        this.mode = localStorage.getItem("claudeLogMode") === "describe" ? "describe" : "photo";
+      } catch {
+        // storage blocked: keep the default
+      }
+      this.step = "pick";
+      this.focusDescribe();
+    },
+    setMode(mode) {
+      this.mode = mode;
+      try {
+        localStorage.setItem("claudeLogMode", mode);
+      } catch {
+        // storage blocked: the mode just isn't remembered
+      }
+      this.focusDescribe();
+    },
+    focusDescribe() {
+      if (this.mode === "describe") this.$nextTick(() => this.$refs.describe.focus());
+    },
     startWaiting() {
+      this.stopDictating();
       this.busy = true;
       this.waitMessage = "Estimating macros…";
       this.waitTimer = setTimeout(() => {
@@ -116,6 +145,10 @@ document.addEventListener("alpine:init", () => {
     stopWaiting() {
       clearTimeout(this.waitTimer);
       this.busy = false;
+    },
+    finished(event) {
+      this.stopWaiting();
+      if (event.detail.successful) this.step = "check";
     },
     async choose(event) {
       const file = event.target.files[0];
@@ -133,14 +166,59 @@ document.addEventListener("alpine:init", () => {
     attach(event) {
       event.detail.formData.set("photo", this.upload, this.upload.name || "meal.jpg");
     },
-    // The sheet keeps its body between opens, so clear the photo before it slides back up.
+    // "Edit" on the estimate: fill the manual form with it and go back to the sheet, where it can be changed and logged.
+    edit(estimate) {
+      const form = document.getElementById("entry-form");
+      for (const key of ["name", "protein", "fat", "carbs", "calories"]) {
+        form.querySelector(`[name=${key}]`).value = estimate.elements[key].value;
+      }
+      Alpine.$data(form).caloriesTouched = true; // keep Claude's calories unless the user changes them
+      this.step = null;
+      this.$nextTick(() => form.scrollIntoView({ block: "start", behavior: "smooth" }));
+    },
+    dictate() {
+      if (this.listening) {
+        this.stopDictating();
+        return;
+      }
+      const recognizer = new SpeechRecognition();
+      recognizer.lang = navigator.language || "en-US";
+      recognizer.interimResults = false;
+      recognizer.onresult = (event) => {
+        const said = [...event.results].map((result) => result[0].transcript).join(" ").trim();
+        if (said) this.what = [this.what.trim(), said].filter(Boolean).join(" ");
+      };
+      recognizer.onerror = (event) => {
+        if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+          showToast("Microphone access is off for this site", true);
+        }
+      };
+      recognizer.onend = () => {
+        this.listening = false;
+        this.recognizer = null;
+      };
+      this.recognizer = recognizer;
+      this.listening = true;
+      try {
+        recognizer.start();
+      } catch {
+        this.listening = false;
+        this.recognizer = null;
+      }
+    },
+    stopDictating() {
+      if (this.recognizer) this.recognizer.stop();
+    },
+    // The sheet keeps its body between opens, so clear everything before it slides back up.
     reset() {
       this.stopWaiting();
+      this.stopDictating();
       if (this.url) URL.revokeObjectURL(this.url);
       Object.assign(this, { step: null, picked: null, upload: null, url: "", what: "", fork: true });
     },
     back() {
-      this.step = this.step === "preview" ? "pick" : null;
+      if (this.step === "check") this.step = this.upload && this.mode === "photo" ? "preview" : "pick";
+      else this.step = this.step === "preview" ? "pick" : null;
     },
   }));
 

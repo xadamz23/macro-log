@@ -1,0 +1,79 @@
+<button type="button" class="photo-row glass" x-show="!step" @click="start()">
+  <span class="photo-ico">{{ icon("sparkle") }}</span>
+  <span class="photo-row-text">
+    <span class="row-title">Log with Claude</span>
+    <span class="row-sub">Snap your plate or just say what you had</span>
+  </span>
+</button>
+
+<div class="stack" x-show="step" x-cloak>
+  <div class="photo-head">
+    <button type="button" class="icon-btn btn-glass" @click="back()" :disabled="busy" aria-label="Back">‹</button>
+    <div class="section-label" x-text="step === 'check' ? 'Claude’s estimate' : 'Log with Claude'">Log with Claude</div>
+  </div>
+
+  <div class="segmented glass is-full" role="group" aria-label="Log from" x-show="step === 'pick'">
+    <button type="button" :class="mode === 'photo' && 'accent'" :aria-pressed="mode === 'photo'" @click="setMode('photo')">{{ icon("camera") }}Photo</button>
+    <button type="button" :class="mode === 'describe' && 'accent'" :aria-pressed="mode === 'describe'" @click="setMode('describe')">{{ icon("chat") }}Describe</button>
+  </div>
+
+  <div class="stack" x-show="step === 'pick' && mode === 'photo'">
+    <p class="hint">Get the whole plate in frame, with a fork beside it for scale.</p>
+    <div class="photo-picks">
+      <button type="button" class="photo-pick glass" @click="$refs.camera.click()">
+        <span class="photo-ico">{{ icon("camera") }}</span>
+        <span class="row-title">Take a photo</span>
+      </button>
+      <button type="button" class="photo-pick glass" @click="$refs.library.click()">
+        <span class="photo-ico">{{ icon("image") }}</span>
+        <span class="row-title">Choose a photo</span>
+      </button>
+    </div>
+    <input type="file" accept="image/*" capture="environment" class="photo-file" x-ref="camera" tabindex="-1" aria-hidden="true" @change="choose($event)">
+    <input type="file" accept="image/*" class="photo-file" x-ref="library" tabindex="-1" aria-hidden="true" @change="choose($event)">
+  </div>
+
+  {# No photo here, so no fork toggle: Claude estimates from the words alone. #}
+  <form class="stack" x-show="step === 'pick' && mode === 'describe'" hx-post="/entries/estimate" hx-target="#claude-estimate"
+        hx-swap="innerHTML" hx-sync="this:drop" @htmx:before-request="startWaiting()" @htmx:after-request="finished($event)">
+    <input type="hidden" name="day" value="{{ day_value }}">
+    <div class="field describe-field photo-fields" :class="busy && 'is-busy'" :inert="busy">
+      <label for="claude-what">What did you have?</label>
+      <textarea class="glass-input" id="claude-what" name="what" rows="3" maxlength="500" autocomplete="off" x-model="what"
+                x-ref="describe" placeholder="e.g. large coke from mcdonalds"
+                @keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); $el.form.requestSubmit() }"></textarea>
+      <button type="button" class="icon-btn btn-glass dictate" x-show="canDictate" x-cloak @click="dictate()"
+              :class="listening && 'accent'" :aria-pressed="listening" aria-label="Dictate">{{ icon("mic") }}</button>
+    </div>
+    <button type="submit" class="btn accent btn-block" :disabled="busy || !what.trim()" :aria-busy="busy"
+            x-text="busy ? waitMessage : 'Estimate'">Estimate</button>
+  </form>
+
+  <form class="stack" x-show="step === 'preview'" hx-post="/entries/estimate" hx-target="#claude-estimate" hx-swap="innerHTML"
+        hx-encoding="multipart/form-data" hx-sync="this:drop"
+        @htmx:config-request="attach($event)" @htmx:before-request="startWaiting()" @htmx:after-request="finished($event)">
+    <input type="hidden" name="day" value="{{ day_value }}">
+    <div class="photo-shot" :class="busy && 'is-busy'">
+      <img :src="url" alt="Your food photo">
+      <template x-if="busy"><div class="photo-scan" aria-hidden="true"></div></template>
+      <button type="button" class="btn btn-glass photo-retake" x-show="!busy" @click="step = 'pick'">Retake</button>
+      <div class="photo-status" role="status" x-show="busy"><span class="photo-spinner" aria-hidden="true"></span><span x-text="waitMessage"></span></div>
+    </div>
+    <div class="stack photo-fields" :class="busy && 'is-busy'" :inert="busy">
+      <div class="field">
+        <label for="photo-what">What is it?</label>
+        <input class="glass-input" id="photo-what" type="text" name="what" maxlength="500" autocomplete="off" x-model="what"
+               placeholder="e.g. chicken burrito bowl with rice and guac">
+      </div>
+      <label class="toggle">
+        <span>There's a fork in the photo for scale</span>
+        <input type="checkbox" name="fork" value="on" x-model="fork">
+        <span class="toggle-track" aria-hidden="true"></span>
+      </label>
+    </div>
+    <button type="submit" class="btn accent btn-block" :disabled="busy" :aria-busy="busy"
+            x-text="busy ? waitMessage : 'Estimate'">Estimate</button>
+  </form>
+
+  <div id="claude-estimate" class="stack" x-show="step === 'check'"></div>
+</div>

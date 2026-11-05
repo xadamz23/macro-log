@@ -1,4 +1,4 @@
-"""Estimate a meal's macros from a photo with the Claude API."""
+"""Estimate a meal's macros from a photo, a description, or both, with the Claude API."""
 
 import base64
 import json
@@ -13,15 +13,16 @@ from app.services.macros import Macros
 
 log = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You estimate the macros of a meal from a photo for a food log.
+SYSTEM_PROMPT = """You estimate the macros of a meal for a food log, from a photo, the user's description of it, or both.
 
-Estimate the combined totals for everything edible in the photo. Treat the user's description as more reliable than \
-what you can see, and allow for ingredients a photo can't show, such as cooking oil and butter.
+Estimate the combined totals for everything edible in the photo, or everything described when there's no photo. Treat \
+the user's description as more reliable than what you can see, and allow for ingredients a photo can't show, such as \
+cooking oil and butter. For a named restaurant or packaged item, use what you know of its published nutrition and size.
 
 Give your best single estimate, not a range. Calories are in kcal; protein, fat and carbs are in grams. "name" is a \
 short name for the meal, at most six words. "portion" is one short line stating the portion size you assumed.
 
-If the photo shows no food, return zero for all four numbers."""
+If there's no food in the photo or description, return zero for all four numbers."""
 
 OUTPUT_SCHEMA = {
     "type": "object",
@@ -50,10 +51,14 @@ class PhotoEstimate:
 
 
 class MacroEstimator(Protocol):
-    async def __call__(self, image: bytes, media_type: str, description: str, has_fork: bool) -> PhotoEstimate: ...
+    async def __call__(
+        self, image: bytes | None, media_type: str | None, description: str, has_fork: bool
+    ) -> PhotoEstimate: ...
 
 
-def build_request_text(description: str, has_fork: bool) -> str:
+def build_request_text(description: str, has_fork: bool, has_photo: bool = True) -> str:
+    if not has_photo:
+        return f"Estimate the macros for this food: {description}."
     parts = ["Estimate the macros for the food in this photo."]
     if has_fork:
         parts.append("There's a regular dinner fork in the shot for scale.")
@@ -76,7 +81,7 @@ def parse_estimate(text: str) -> PhotoEstimate:
         raise EstimateError("The estimate looked wrong. Try again or log it manually.")
     macros = Macros(calories=round(calories), protein=round(protein, 1), fat=round(fat, 1), carbs=round(carbs, 1))
     if macros.is_zero():
-        raise EstimateError("Couldn't find any food in that photo.")
+        raise EstimateError("Claude couldn't find any food to estimate.")
     return PhotoEstimate(name=name, portion=portion, macros=macros)
 
 
@@ -85,7 +90,22 @@ class ClaudeMacroEstimator:
         self._client = anthropic.AsyncAnthropic(api_key=api_key, timeout=60.0, max_retries=1)
         self._model = model
 
-    async def __call__(self, image: bytes, media_type: str, description: str, has_fork: bool) -> PhotoEstimate:
+    async def __call__(
+        self, image: bytes | None, media_type: str | None, description: str, has_fork: bool
+    ) -> PhotoEstimate:
+        content = []
+        if image is not None:
+            content.append(
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": media_type,
+                        "data": base64.standard_b64encode(image).decode("ascii"),
+                    },
+                }
+            )
+        content.append({"type": "text", "text": build_request_text(description, has_fork, has_photo=image is not None)})
         try:
             response = await self._client.beta.messages.create(
                 model=self._model,
@@ -94,22 +114,7 @@ class ClaudeMacroEstimator:
                 fallbacks="default",
                 output_config={"effort": "medium", "format": {"type": "json_schema", "schema": OUTPUT_SCHEMA}},
                 system=SYSTEM_PROMPT,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "image",
-                                "source": {
-                                    "type": "base64",
-                                    "media_type": media_type,
-                                    "data": base64.standard_b64encode(image).decode("ascii"),
-                                },
-                            },
-                            {"type": "text", "text": build_request_text(description, has_fork)},
-                        ],
-                    }
-                ],
+                messages=[{"role": "user", "content": content}],
             )
         except anthropic.AuthenticationError as err:
             log.error("Claude API rejected the key: %s", err.message)
@@ -121,10 +126,10 @@ class ClaudeMacroEstimator:
             raise EstimateError("Couldn't reach Claude. Try again.") from err
         except anthropic.APIStatusError as err:
             log.error("Claude API error %s: %s", err.status_code, err.message)
-            raise EstimateError("Claude couldn't estimate that photo. Try again or log it manually.") from err
+            raise EstimateError("Claude couldn't make an estimate. Try again or log it manually.") from err
 
         if response.stop_reason == "refusal":
-            raise EstimateError("Claude declined to estimate that photo. Log it manually.")
+            raise EstimateError("Claude declined to make an estimate. Log it manually.")
         if response.stop_reason == "max_tokens":
             raise EstimateError("The estimate was cut off. Try again.")
         text = next((block.text for block in response.content if block.type == "text"), "")

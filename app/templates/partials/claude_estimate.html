@@ -1,0 +1,24 @@
+{% set m = estimate.macros %}
+<div class="estimate glass">
+  <div class="estimate-head">
+    <span class="row-title">{{ name }}</span>
+    <span class="estimate-kcal">{{ m.calories }} kcal</span>
+  </div>
+  {% if estimate.portion %}<div class="row-sub">{{ estimate.portion }}</div>{% endif %}
+  <div class="estimate-macros">
+    <span>P <b class="m-protein">{{ m.protein|num }}g</b></span>
+    <span>F <b class="m-fat">{{ m.fat|num }}g</b></span>
+    <span>C <b class="m-carbs">{{ m.carbs|num }}g</b></span>
+  </div>
+</div>
+<form class="grid-2" hx-post="/entries" hx-swap="none" hx-sync="this:drop" hx-disabled-elt="find button[type='submit']">
+  <input type="hidden" name="day" value="{{ day_value }}">
+  <input type="hidden" name="name" value="{{ name }}">
+  <input type="hidden" name="calories" value="{{ m.calories }}">
+  <input type="hidden" name="protein" value="{{ m.protein|num }}">
+  <input type="hidden" name="fat" value="{{ m.fat|num }}">
+  <input type="hidden" name="carbs" value="{{ m.carbs|num }}">
+  <button type="button" class="btn btn-glass" @click="edit($el.form)">Edit</button>
+  <button type="submit" class="btn accent">Log it</button>
+</form>
+<p class="hint">{% if from_photo %}Estimated from your photo.{% else %}Estimated from your description, with no photo.{% endif %}</p>

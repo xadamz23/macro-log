@@ -13,10 +13,12 @@ make test
 
 New migration after changing `app/models.py`: `make revision m="describe change"`, then review the file in `alembic/versions/`.
 
-## Logging from a photo
+## Logging with Claude
 
-Set `ANTHROPIC_API_KEY` in `.env` to show "Log from a photo" in the log sheet, including on the production host. It
-sends the photo and description to the Claude API, then logs the estimate as an entry. The app doesn't store the photo.
+Set `ANTHROPIC_API_KEY` in `.env` to show "Log with Claude" in the log sheet, including on the production host. Its
+Photo mode sends a photo (and an optional description) to the Claude API; Describe mode sends just a description, such
+as "large coke from mcdonalds". Claude's estimate is shown to check, then logged, or copied into the manual form to
+edit. The app doesn't store the photo.
 Without a key the option is hidden. `ANTHROPIC_MODEL` overrides the default model.
 
 ## Local prod-like smoke test (native arm64 + Postgres)

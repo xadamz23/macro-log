@@ -172,13 +172,14 @@ def test_log_sheet_without_foods_has_no_search(client):
     assert 'type="search"' not in r.text
 
 
-def test_log_sheet_offers_logging_from_a_photo(app, client):
+def test_log_sheet_offers_logging_with_claude(app, client):
     app.dependency_overrides[get_macro_estimator] = lambda: object()
     r = client.get("/")
-    assert 'x-data="photoLog" @open-log.window="reset()"' in r.text
-    assert "Log from a photo" in r.text
-    assert 'hx-post="/entries/photo"' in r.text
+    assert 'x-data="claudeLog" @open-log.window="reset()"' in r.text
+    assert "Log with Claude" in r.text
+    assert r.text.count('hx-post="/entries/estimate"') == 2
     assert 'capture="environment"' in r.text and "Choose a photo" in r.text
+    assert 'id="claude-what"' in r.text and "Describe" in r.text
     assert 'id="entry-form"' in r.text
 
 
@@ -226,7 +227,7 @@ def test_past_day_edit_response_keeps_the_sheet_on_that_day(client, db):
 
 def test_write_response_honors_photo_setting(app, client):
     r = client.post("/entries", data={"calories": "100"})
-    assert "Log from a photo" not in _sheet(r.text)
+    assert "Log with Claude" not in _sheet(r.text)
     app.dependency_overrides[get_macro_estimator] = lambda: object()
     r = client.post("/entries", data={"calories": "100"})
-    assert "Log from a photo" in _sheet(r.text)
+    assert "Log with Claude" in _sheet(r.text)
