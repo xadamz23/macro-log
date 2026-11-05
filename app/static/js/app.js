@@ -170,10 +170,13 @@ document.addEventListener("alpine:init", () => {
       }
       const recognizer = new SpeechRecognition();
       recognizer.lang = navigator.language || "en-US";
-      recognizer.interimResults = false;
+      // Interim results stream the words into the field as they're said, so it's clear the mic is hearing you. Each
+      // result event carries the whole utterance so far, so it replaces what was said after `before` each time.
+      recognizer.interimResults = true;
+      const before = this.what.trim();
       recognizer.onresult = (event) => {
-        const said = [...event.results].map((result) => result[0].transcript).join(" ").trim();
-        if (said) this.what = [this.what.trim(), said].filter(Boolean).join(" ");
+        const said = [...event.results].map((result) => result[0].transcript).join(" ").replace(/\s+/g, " ").trim();
+        this.what = [before, said].filter(Boolean).join(" ");
       };
       recognizer.onerror = (event) => {
         if (event.error === "not-allowed" || event.error === "service-not-allowed") {

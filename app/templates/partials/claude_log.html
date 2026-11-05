@@ -1,3 +1,13 @@
+{# Dictation, shared by the Describe box and the photo's "What is it?": one button, a mic that becomes a Done pill
+   while listening (so focus stays put), plus a badge by the field label. Words stream into `what` as they're said. #}
+{% macro listen_badge() %}<span class="listen-badge" x-show="listening" x-cloak><i aria-hidden="true"></i>Listening…</span>{% endmacro %}
+{% macro dictate_button() %}
+<button type="button" class="dictate" x-show="canDictate && !busy" x-cloak @click="dictate()"
+        :class="listening ? 'btn accent is-listening' : 'icon-btn btn-glass'" :aria-label="listening ? 'Done dictating' : 'Dictate'">
+  <span x-show="!listening">{{ icon("mic") }}</span><span x-show="listening" x-cloak>Done</span>
+</button>
+{% endmacro %}
+
 <button type="button" class="photo-row glass" x-show="!step" @click="start()">
   <span class="photo-ico">{{ icon("sparkle") }}</span>
   <span class="photo-row-text">
@@ -38,13 +48,12 @@
         hx-swap="innerHTML" hx-sync="this:drop" @htmx:before-request="startWaiting()" @htmx:after-request="finished($event)">
     <input type="hidden" name="day" value="{{ day_value }}">
     <div class="field">
-      <label for="claude-what">What did you have?</label>
-      <div class="describe-box" :class="busy && 'is-busy'" :inert="busy">
+      <div class="field-head"><label for="claude-what">What did you have?</label>{{ listen_badge() }}</div>
+      <div class="describe-box dictate-box" :class="{ 'is-busy': busy, 'is-listening': listening }" :inert="busy">
         <textarea class="glass-input" id="claude-what" name="what" rows="3" maxlength="500" autocomplete="off" x-model="what"
-                  x-ref="describe" placeholder="e.g. large coke from mcdonalds"
+                  x-ref="describe" :placeholder="listening ? 'Listening…' : 'e.g. large coke from mcdonalds'"
                   @keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); $el.form.requestSubmit() }"></textarea>
-        <button type="button" class="icon-btn btn-glass dictate" x-show="canDictate && !busy" x-cloak @click="dictate()"
-                :class="listening && 'accent'" :aria-pressed="listening" aria-label="Dictate">{{ icon("mic") }}</button>
+        {{ dictate_button() }}
         <template x-if="busy"><div class="describe-scan" aria-hidden="true"></div></template>
         <div class="photo-status" role="status" x-show="busy" x-cloak><span class="photo-spinner" aria-hidden="true"></span><span x-text="waitMessage"></span></div>
       </div>
@@ -65,9 +74,12 @@
     </div>
     <div class="stack photo-fields" :class="busy && 'is-busy'" :inert="busy">
       <div class="field">
-        <label for="photo-what">What is it?</label>
-        <input class="glass-input" id="photo-what" type="text" name="what" maxlength="500" autocomplete="off" x-model="what"
-               placeholder="e.g. chicken burrito bowl with rice and guac">
+        <div class="field-head"><label for="photo-what">What is it?</label>{{ listen_badge() }}</div>
+        <div class="dictate-box is-line" :class="listening && 'is-listening'">
+          <input class="glass-input" id="photo-what" type="text" name="what" maxlength="500" autocomplete="off" x-model="what"
+                 :placeholder="listening ? 'Listening…' : 'e.g. chicken burrito bowl with rice and guac'">
+          {{ dictate_button() }}
+        </div>
       </div>
       <label class="toggle">
         <span>There's a fork in the photo for scale</span>

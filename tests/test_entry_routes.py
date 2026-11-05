@@ -183,6 +183,13 @@ def test_log_sheet_offers_logging_with_claude(app, client):
     assert 'id="entry-form"' in r.text
 
 
+def test_both_claude_fields_can_be_dictated(app, client):
+    app.dependency_overrides[get_macro_estimator] = lambda: object()
+    r = client.get("/")
+    assert r.text.count('@click="dictate()"') == 2  # Describe box and the photo's "What is it?"
+    assert r.text.count('class="listen-badge"') == 2
+
+
 def _sheet(html):
     """The log sheet's contents, so an entry on the day's list doesn't count as a tile."""
     return html.split('id="log-sheet-body"')[1]

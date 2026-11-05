@@ -472,7 +472,7 @@ textarea { resize: vertical; }
 .segmented.is-full button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; border-radius: 10px; font-size: 0.9rem; }
 .segmented.is-full svg { width: 18px; height: 18px; }
 .describe-box { position: relative; }
-.describe-box textarea { display: block; min-height: 104px; padding-right: 56px; resize: none; line-height: 1.4; }
+.describe-box textarea { display: block; min-height: 104px; resize: none; line-height: 1.4; }
 /* While Claude estimates a description: the box takes the accent border, the text dims, a light sweeps across it, and
    the same status pill as the photo shows in its corner. Like the photo's, the sweep moves by transform only. */
 .describe-box.is-busy textarea { border-color: var(--accent); color: var(--muted); }
@@ -483,8 +483,32 @@ textarea { resize: vertical; }
   animation: describe-sweep 1.6s ease-in-out infinite;
 }
 @keyframes describe-sweep { from { transform: translateX(-100%); } to { transform: translateX(170%); } }
+/* Dictation: the mic sits in the field's corner and becomes a Done pill while listening. The field glows and breathes
+   and a badge shows by its label, so it's obvious the mic is on. The glow and the ripples off Done animate opacity and
+   transform only, so they don't repaint the blurred sheet. */
+.dictate-box { position: relative; }
+.dictate-box .glass-input { padding-right: 56px; }
+.dictate-box.is-listening .glass-input { padding-right: 92px; border-color: var(--accent); }
+.dictate-box::after {
+  content: ""; position: absolute; inset: 0; border-radius: 10px; pointer-events: none; opacity: 0;
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 30%, transparent), 0 0 28px var(--accent-glow);
+}
+.dictate-box.is-listening::after { animation: listen-breathe 1.6s ease-in-out infinite; }
+@keyframes listen-breathe { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
 .dictate { position: absolute; right: 8px; bottom: 8px; }
+.dictate-box.is-line .dictate { right: 4px; bottom: 4px; }
 .dictate svg { width: 18px; height: 18px; }
+.dictate.is-listening { min-height: 36px; padding: 0 16px; border-radius: 999px; font-size: 0.85rem; }
+.dictate.is-listening::before, .dictate.is-listening::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  border: 2px solid var(--accent); animation: listen-ripple 1.6s ease-out infinite;
+}
+.dictate.is-listening::after { animation-delay: 0.8s; }
+@keyframes listen-ripple { from { transform: scale(1); opacity: 0.8; } to { transform: scale(1.45, 1.7); opacity: 0; } }
+.field-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.listen-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; color: var(--accent); }
+.listen-badge i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: listen-blink 1s ease-in-out infinite; }
+@keyframes listen-blink { 50% { opacity: 0.25; } }
 /* Claude's estimate, shown for a check before it's logged. */
 .estimate { display: grid; gap: 4px; padding: 12px 14px; border-radius: 14px; }
 .estimate-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
@@ -498,7 +522,9 @@ textarea { resize: vertical; }
 .photo-fields.is-busy { opacity: 0.5; }
 .btn.accent:disabled { opacity: 0.85; cursor: progress; }
 @media (prefers-reduced-motion: reduce) {
-  .photo-scan::before, .describe-scan::before { display: none; }
+  .photo-scan::before, .describe-scan::before, .dictate.is-listening::before, .dictate.is-listening::after { display: none; }
+  .dictate-box.is-listening::after { animation: none; opacity: 0.7; }
+  .listen-badge i { animation: none; }
   .photo-spinner { animation: none; border-color: var(--accent); }
 }
 
