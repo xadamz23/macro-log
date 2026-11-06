@@ -656,3 +656,10 @@ textarea { resize: vertical; }
 @media (min-width: 700px) {
   .sheet { left: 50%; right: auto; width: 640px; transform: translateX(-50%); border-width: 1px 1px 0; }
 }
+
+/* TEMP: first-open stutter diagnosis readout (app.js traceSheetOpen). */
+.trace-box {
+  position: fixed; top: 8px; left: 8px; right: 8px; z-index: 100; margin: 0; padding: 10px;
+  max-height: 60vh; overflow: auto; border-radius: 12px;
+  font: 11px/1.4 ui-monospace, monospace; white-space: pre-wrap; color: var(--text);
+}
