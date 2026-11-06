@@ -296,7 +296,6 @@ document.addEventListener("alpine:init", () => {
       });
     },
     show() {
-      traceSheetOpen(); // TEMP: first-open stutter diagnosis
       // A failed submit re-renders the form with the bad values as its defaults, so form.reset() can't blank it.
       const blank = this.$root.querySelector("#entry-form-blank").content.firstElementChild.cloneNode(true);
       this.$root.querySelector("#entry-form").replaceWith(blank);
@@ -449,87 +448,4 @@ document.addEventListener("alpine:init", () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js"));
-}
-
-// TEMP: first-open stutter diagnosis. For 1.2 s after the log sheet opens, records frame gaps (rAF), long animation
-// frames (main-thread script / style+layout / paint) and the tap's time to next paint, then shows them in a box at
-// the top of the screen; tap it to dismiss. Remove once the cause is found.
-let traceCold = true;
-let traceSince = performance.now();
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) return;
-  traceCold = true;
-  traceSince = performance.now();
-});
-const traceSupported = (type) => (PerformanceObserver.supportedEntryTypes || []).includes(type);
-
-function traceSheetOpen() {
-  const t0 = performance.now();
-  const cold = traceCold;
-  const sinceResume = Math.round(t0 - traceSince);
-  traceCold = false;
-  const loafs = [];
-  const taps = [];
-  const observers = [];
-  const watch = (type, sink, extra) => {
-    if (!traceSupported(type)) return;
-    const po = new PerformanceObserver((list) => sink.push(...list.getEntries()));
-    po.observe({ type, buffered: true, ...extra });
-    observers.push(po);
-  };
-  watch("long-animation-frame", loafs);
-  watch("event", taps, { durationThreshold: 16 });
-  const gaps = [];
-  let last = t0;
-  const tick = () => {
-    const now = performance.now(); // not the rAF timestamp, which is the frame's start and can precede t0
-    gaps.push(now - last);
-    last = now;
-    if (now - t0 < 1200) requestAnimationFrame(tick);
-    else setTimeout(report, 50);
-  };
-  requestAnimationFrame(tick);
-
-  function report() {
-    observers.forEach((po) => {
-      const rest = po.takeRecords();
-      (rest[0]?.entryType === "event" ? taps : loafs).push(...rest);
-      po.disconnect();
-    });
-    const r = (n) => Math.round(n);
-    const big = gaps.filter((g) => g > 25).map(r);
-    const lines = [
-      `${cold ? "COLD" : "warm"} open · ${sinceResume} ms after load/resume`,
-      `frames in 1.2s: ${gaps.length} · worst ${r(Math.max(...gaps))} ms · first ${r(gaps[0])} ms`,
-      `gaps >25ms: ${big.length ? big.join(", ") : "none"}`,
-    ];
-    const tap = taps
-      .filter((e) => e.startTime > t0 - 1000 && ["pointerdown", "pointerup", "click"].includes(e.name))
-      .sort((a, b) => b.duration - a.duration)[0];
-    lines.push(tap
-      ? `tap→paint: ${r(tap.duration)} ms (${tap.name}; handlers ${r(tap.processingEnd - tap.processingStart)} ms)`
-      : `tap→paint: ${traceSupported("event") ? "<16 ms" : "n/a"}`);
-    if (!traceSupported("long-animation-frame")) lines.push("long frames: n/a in this browser");
-    else {
-      const mine = loafs.filter((f) => f.startTime + f.duration > t0 - 300 && f.startTime < t0 + 1200);
-      if (!mine.length) lines.push("long frames (>50ms main thread): none");
-      mine.forEach((f) => {
-        const end = f.startTime + f.duration;
-        const script = f.scripts.reduce((sum, sc) => sum + sc.duration, 0);
-        const layout = f.styleAndLayoutStart ? end - f.styleAndLayoutStart : 0;
-        const paint = f.renderStart ? end - f.renderStart - layout : 0;
-        lines.push(`LoAF @${r(f.startTime - t0)}: ${r(f.duration)} ms = script ${r(script)}, ` +
-          `rAF/render ${r(paint)}, style+layout ${r(layout)}`);
-      });
-    }
-    let box = document.getElementById("trace-box");
-    if (!box) {
-      box = document.createElement("pre");
-      box.id = "trace-box";
-      box.className = "trace-box glass-strong is-popover";
-      box.addEventListener("click", () => box.remove());
-      document.body.append(box);
-    }
-    box.textContent = lines.join("\n") + (box.textContent ? "\n\n" + box.textContent : "");
-  }
 }
