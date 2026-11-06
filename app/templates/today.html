@@ -32,9 +32,9 @@
 <div x-data="logSheet({{ 'true' if open_log else 'false' }})"
      @open-log.window="show()" @entry-logged.window="hide()" @keydown.escape.window="hide()">
   <div class="sheet-backdrop" x-show="open" x-transition.opacity x-cloak @click="hide()"></div>
-  {# Not x-show: the closed sheet stays laid out below the screen, so opening only slides it (see .sheet in app.css). #}
-  <div class="sheet glass-strong" x-ref="sheet" role="dialog" aria-modal="true" aria-label="Log food" inert
-       :class="open && 'is-open'" :inert="!open">
+  <div class="sheet glass-strong" x-ref="sheet" role="dialog" aria-modal="true" aria-label="Log food" x-show="open" x-cloak :inert="!open"
+       x-transition:enter="sheet-anim" x-transition:enter-start="sheet-off"
+       x-transition:leave="sheet-anim" x-transition:leave-end="sheet-off">
     <div class="sheet-handle"></div>
     <div class="sheet-head">
       <h2>Log food{% if not is_today %} · {{ day|day(today) }}{% endif %}</h2>
