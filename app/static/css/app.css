@@ -44,27 +44,10 @@ a { color: var(--accent); }
 
 /* Aurora: fixed glow layer behind everything. The glass only reads as glass because of it. */
 .aurora { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; background: var(--bg); }
-/* Each glow is a radial gradient that follows the falloff of a disc of radius --r (about 190px on a phone) blurred by
-   90px, padded by 270px so the tail fits. It used to be that disc with filter: blur(90px), which is costly to redraw:
-   the first log sheet open after the app came back from the background hitched while the phone redid it under the
-   sheet's glass. */
-.aurora i {
-  position: absolute; width: calc(2 * var(--r) + 540px); height: calc(2 * var(--r) + 540px);
-  background: radial-gradient(circle closest-side,
-    color-mix(in srgb, var(--c) 89%, transparent),
-    color-mix(in srgb, var(--c) 85%, transparent) calc(var(--r) - 135px),
-    color-mix(in srgb, var(--c) 74%, transparent) calc(var(--r) - 90px),
-    color-mix(in srgb, var(--c) 58%, transparent) calc(var(--r) - 45px),
-    color-mix(in srgb, var(--c) 40%, transparent) var(--r),
-    color-mix(in srgb, var(--c) 24%, transparent) calc(var(--r) + 45px),
-    color-mix(in srgb, var(--c) 11%, transparent) calc(var(--r) + 90px),
-    color-mix(in srgb, var(--c) 5%, transparent) calc(var(--r) + 135px),
-    color-mix(in srgb, var(--c) 1%, transparent) calc(var(--r) + 180px),
-    transparent calc(var(--r) + 225px));
-}
-.aurora i:nth-child(1) { --r: 22vmax; --c: var(--glow-1); top: calc(-16vmax - 270px); left: calc(-14vmax - 270px); opacity: 0.5; }
-.aurora i:nth-child(2) { --r: 23vmax; --c: var(--glow-2); top: calc(28% - 270px); right: calc(-20vmax - 270px); opacity: 0.4; }
-.aurora i:nth-child(3) { --r: 20vmax; --c: var(--glow-3); bottom: calc(-18vmax - 270px); left: calc(8% - 270px); opacity: 0.35; }
+.aurora i { position: absolute; border-radius: 9999px; filter: blur(90px); }
+.aurora i:nth-child(1) { width: 44vmax; height: 44vmax; top: -16vmax; left: -14vmax; background: var(--glow-1); opacity: 0.5; }
+.aurora i:nth-child(2) { width: 46vmax; height: 46vmax; top: 28%; right: -20vmax; background: var(--glow-2); opacity: 0.4; }
+.aurora i:nth-child(3) { width: 40vmax; height: 40vmax; bottom: -18vmax; left: 8%; background: var(--glow-3); opacity: 0.35; }
 
 /* ===== Glass components: the only place surface, accent and button styles are defined. ===== */
 .glass {
