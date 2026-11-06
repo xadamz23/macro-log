@@ -293,6 +293,16 @@ document.addEventListener("alpine:init", () => {
         if (this.open && !document.hidden && this.$root.contains(el)) {
           setTimeout(() => el.scrollIntoView({ block: "center" }), 300);
         }
+        if (!document.hidden) this.warm();
+      });
+      window.addEventListener("pageshow", () => this.warm());
+    },
+    // The phone drops cached rendering while the app is in the background; redo the closed sheet's layout while
+    // idle, so it isn't done in the first frame of the slide.
+    warm() {
+      const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 200));
+      idle(() => {
+        if (!this.open) void this.$refs.sheet.offsetHeight;
       });
     },
     show() {

@@ -369,8 +369,14 @@ textarea { resize: vertical; }
   border-radius: 22px 22px 0 0;
   padding: 8px 16px calc(24px + env(safe-area-inset-bottom));
 }
-.sheet-anim { transition: translate 0.25s ease; }
-.sheet-off { translate: 0 100%; }
+/* Closed, the sheet sits laid out below the screen instead of display: none. With display: none the first open
+   after a refresh or a return from the background had to lay out, paint and blur the whole sheet in the slide's
+   first frame, and the slide visibly jumped. Visibility flips only after the slide down finishes. */
+.sheet {
+  translate: 0 100%; visibility: hidden; will-change: translate;
+  transition: translate 0.25s ease, visibility 0s linear 0.25s;
+}
+.sheet.is-open { translate: 0; visibility: visible; transition-delay: 0s; }
 .sheet-handle { width: 40px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.2); margin: 4px auto 12px; }
 .sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .sheet-head h2 { margin: 0; }
