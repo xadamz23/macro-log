@@ -81,12 +81,13 @@ def test_log_quick_food_errors(client, db):
     assert client.post(f"/quick-foods/{food.id}/log", data={"servings": "abc"}).status_code == 422
 
 
-def test_log_sheet_lists_quick_and_recent(client, db):
+def test_log_sheet_lists_quick_foods_not_recent(client, db):
     create_quick_food(db, name="Yogurt", serving_label="", macros=Macros(100))
     create_entry(db, day=TODAY, macros=Macros(300, 30, 10, 20), name="Chicken bowl")
     r = client.get("/")
     assert r.status_code == 200
-    assert "Yogurt" in r.text and "Chicken bowl" in r.text
+    assert "Yogurt" in _sheet(r.text) and "Chicken bowl" not in _sheet(r.text)
+    assert '<div class="section-label">Recent</div>' not in r.text
     assert 'id="entry-form"' in r.text
     assert "Save as quick food" in r.text
 
@@ -94,17 +95,12 @@ def test_log_sheet_lists_quick_and_recent(client, db):
 def test_hide_recent_food_route(client, db):
     create_entry(db, day=TODAY, macros=Macros(300, 30, 10, 20), name="Chicken bowl")
     create_entry(db, day=TODAY, macros=Macros(150, 5, 5, 20), name="Granola bar")
-    sheet = client.get("/")
-    assert 'hx-post="/recent-foods/hide"' in sheet.text and "Options for Chicken bowl" in sheet.text
-
     r = client.post("/recent-foods/hide", data={"day": TODAY.isoformat(), "name": "Chicken bowl",
                                                 "calories": "300", "protein": "30.0", "fat": "10.0", "carbs": "20.0"})
     assert r.status_code == 200
     assert 'id="recent-foods"' in r.text
     assert "Granola bar" in r.text and "Chicken bowl" not in r.text
     assert f'"day": "{TODAY.isoformat()}"' in r.text
-    assert "Chicken bowl" not in _sheet(client.get("/").text)
-
     assert client.post("/recent-foods/hide", data={"name": "", "calories": "300"}).status_code == 422
 
 
@@ -160,11 +156,9 @@ def test_entry_form_drops_a_second_submit(client):
 
 def test_log_sheet_search_filters_tiles_by_name(client, db):
     create_quick_food(db, name="Greek Yogurt", serving_label="", macros=Macros(100))
-    create_entry(db, day=TODAY, macros=Macros(300, 30, 10, 20), name="Chicken Bowl")
     r = client.get("/")
     assert 'type="search"' in r.text
     assert 'data-name="greek yogurt"' in r.text
-    assert 'data-name="chicken bowl"' in r.text
 
 
 def test_log_sheet_without_foods_has_no_search(client):
@@ -216,14 +210,6 @@ def test_quick_food_log_response_reorders_the_sheet(client, db):
     r = client.post(f"/quick-foods/{yogurt.id}/log", data={"day": "", "servings": "1"})
     sheet = _sheet(r.text)
     assert sheet.index("Yogurt") < sheet.index("Apple")
-
-
-def test_edit_and_delete_responses_update_recent_foods(client, db):
-    entry = create_entry(db, day=TODAY, macros=Macros(100, 5, 5, 5), name="Snack")
-    r = client.put(f"/entries/{entry.id}", data={"name": "Toast", "calories": "100"})
-    assert 'class="qf-name">Toast' in _sheet(r.text) and "Snack" not in _sheet(r.text)
-    r = client.delete(f"/entries/{entry.id}")
-    assert 'id="log-sheet-body"' in r.text and "Toast" not in _sheet(r.text)
 
 
 def test_past_day_edit_response_keeps_the_sheet_on_that_day(client, db):

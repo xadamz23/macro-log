@@ -1,7 +1,7 @@
 <div x-data="claudeLog" @open-log.window="reset()">
   {% if photo_enabled %}{% include "partials/claude_log.html" %}{% endif %}
   <div x-show="!step">
-    {% if quick_foods or recent %}
+    {% if quick_foods %}
     {% set quick_names = quick_foods|map(attribute="name")|map("lower")|list %}
     <div x-data="foodSearch" @open-log.window="q = ''">
       <input type="search" class="glass-input food-search" placeholder="Search foods" aria-label="Search foods" autocomplete="off" x-model="q">
@@ -13,7 +13,6 @@
         </div>
       </div>
       {% endif %}
-      {% include "partials/recent_foods.html" %}
       <p class="empty food-search-empty" x-show="noMatches()" x-cloak>No matches.</p>
     </div>
     {% endif %}

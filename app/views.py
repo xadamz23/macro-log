@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from sqlalchemy.orm import Session
 
 from app.services.entries import day_totals, list_entries
-from app.services.foods import list_quick_foods_by_recent_use, recent_foods
+from app.services.foods import list_quick_foods_by_recent_use
 from app.services.macros import build_bars
 from app.services.targets import resolve_targets
 
@@ -29,7 +29,6 @@ def sheet_context(db: Session, day: date, today: date, *, photo_enabled: bool) -
         "day_value": "" if day == today else day.isoformat(),
         "photo_enabled": photo_enabled,
         "quick_foods": list_quick_foods_by_recent_use(db),
-        "recent": recent_foods(db, today),
         "values": {},
         "errors": {},
         "prefix": "entry",

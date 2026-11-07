@@ -82,7 +82,7 @@ document.addEventListener("alpine:init", () => {
     any(names) {
       return names.some((name) => this.matches(name));
     },
-    // Read from the tiles because hiding a recent food swaps only that section.
+    // Read from the tiles so any section listing foods with data-name is covered.
     noMatches() {
       const names = [...this.$root.querySelectorAll("[data-name]")].map((el) => el.dataset.name);
       return this.q.trim() !== "" && !this.any(names);

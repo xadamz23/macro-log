@@ -38,3 +38,13 @@ Tailwind or build step, so a new class works as soon as it's in that file.
 - **Contrast:** white text on the accent gradient and `--muted` on glass both need to stay at or above 4.5:1. Check
   new color pairs before using them.
 - Write only the standard `backdrop-filter`. There's no prefixer, and Safari 18+ supports it unprefixed.
+
+## Parked features
+
+- **Recent foods:** the log sheet's "Recent" grid (named entries from the last 30 days, top 8, each removable) is
+  switched off, not deleted. Still in the code: the `HiddenRecentFood` model and migration 0005, `recent_foods` and
+  `hide_recent_food` in `app/services/foods.py`, `POST /recent-foods/hide`, the unreferenced
+  `partials/recent_foods.html`, and their tests. To bring it back, add `"recent": recent_foods(db, today)` to
+  `sheet_context` in `app/views.py`, include the partial after the quick foods in `log_sheet.html` and make its outer
+  check `{% if quick_foods or recent %}`; or revert the commit that parked it (`git log --grep "park the Recent"`).
+  Last commit with it on: `924f8a1`.
