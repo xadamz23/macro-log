@@ -2,12 +2,12 @@
 {% include "partials/entry_list.html" %}
 <div id="log-sheet-body" hx-swap-oob="innerHTML">{% include "partials/log_sheet.html" %}</div>
 <div id="toast" class="toast-slot" hx-swap-oob="true">
+  {# "Logged" toast with Undo switched off (see CLAUDE.md "Parked features"); uncomment to bring it back.
   {% if toast_entry %}
   <div class="toast glass-strong is-popover" x-data x-init="setTimeout(() => $el.remove(), {{ 12000 if toast_detail else 6000 }})">
     <span>Logged {{ toast_entry.name or "entry" }}{% if toast_detail %}<small class="toast-detail">{{ toast_detail }}</small>{% endif %}</span>
-    {# Undo switched off for now; uncomment to bring it back.
     <button type="button" hx-delete="/entries/{{ toast_entry.id }}" hx-swap="none">Undo</button>
-    #}
   </div>
   {% endif %}
+  #}
 </div>

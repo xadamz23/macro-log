@@ -20,7 +20,7 @@ def test_create_entry_autofills_calories_and_returns_oob(client, db):
     assert r.headers["HX-Trigger"] == "entry-logged"
     assert 'id="bars" class="card glass bars" hx-swap-oob="true"' in r.text
     assert 'id="entries" class="card glass entries" hx-swap-oob="true"' in r.text
-    assert "Logged Oats" in r.text
+    assert "Logged Oats" not in r.text  # the logged toast is parked
     assert "Undo" not in r.text
     [entry] = list_entries(db, TODAY)
     assert (entry.name, entry.calories) == ("Oats", 245)
