@@ -50,5 +50,5 @@ Tailwind or build step, so a new class works as soon as it's in that file.
   Last commit with it on: `924f8a1`.
 - **Undo on the logged toast:** the Undo button on the "Logged <name>" toast is commented out in
   `partials/day_refresh.html`, at the user's request because it was annoying them. The toast itself stays, shortened
-  from 6s to 3s (12s to 6s when it carries a detail line). To bring Undo back, remove the `{# … #}` around the button.
+  from 6s to 2s (12s to 4s when it carries a detail line). To bring Undo back, remove the `{# … #}` around the button.
   Last commit with Undo: `1bc00c0`.
