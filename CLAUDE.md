@@ -48,8 +48,7 @@ Tailwind or build step, so a new class works as soon as it's in that file.
   `sheet_context` in `app/views.py`, include the partial after the quick foods in `log_sheet.html` and make its outer
   check `{% if quick_foods or recent %}`; or revert the commit that parked it (`git log --grep "park the Recent"`).
   Last commit with it on: `924f8a1`.
-- **Logged toast with Undo:** the "Logged <name>" toast (with its Undo button) that appeared after logging an entry
-  is commented out in `partials/day_refresh.html`, at the user's request because it was annoying them. The `#toast`
-  slot stays: `app.js` still shows error toasts in it, and the routes still pass `toast_entry`. To bring it back,
-  remove the `{# … #}` around the block. Last commit with the full toast and Undo: `1bc00c0` (`4f3c790` had the
-  toast without Undo).
+- **Undo on the logged toast:** the Undo button on the "Logged <name>" toast is commented out in
+  `partials/day_refresh.html`, at the user's request because it was annoying them. The toast itself stays, shortened
+  from 6s to 3s (12s to 6s when it carries a detail line). To bring Undo back, remove the `{# … #}` around the button.
+  Last commit with Undo: `1bc00c0`.
