@@ -22,6 +22,7 @@ from app.services.targets import targets_resolver
 
 RANGES = {"all": None, "30": 30, "90": 90, "180": 180}
 SUMMARY_WEEKS_MAX = 12
+NEAR_TARGET = 0.10  # a logged day within ±10% of the calorie target counts as near it
 KG_PER_LB = 0.45359237
 
 # Markdown, not HTML: the shared app templates autoescape, which would mangle "&" or "<" in notes.
@@ -76,6 +77,61 @@ def daily_rows(db: Session, start: date, end: date, points: list[weight.TrendPoi
             )
         )
     return rows
+
+
+@dataclass(frozen=True)
+class TargetPeriod:
+    start: date
+    end: date
+    target: Macros
+    days_logged: int
+    avg_calories: int | None
+    avg_protein: float | None
+    days_near_target: int
+    weigh_ins: int
+    trend_start: float | None
+    trend_end: float | None
+    rate: float | None  # lb/week, least-squares fit of the period's weigh-ins
+
+    @property
+    def days(self) -> int:
+        return (self.end - self.start).days + 1
+
+
+def target_periods(db: Session, rows: list[DailyRow], points: list[weight.TrendPoint]) -> list[TargetPeriod]:
+    """Each stretch one set of targets was in effect, clipped to the rows' range, oldest first.
+
+    Days before the first target are left out, unlike daily.csv, which back-fills them with it."""
+    first_day, last_day = rows[0].day, rows[-1].day
+    targets = list(db.scalars(select(Target).order_by(Target.effective_date)))
+    periods = []
+    for i, target in enumerate(targets):
+        start = max(target.effective_date, first_day)
+        end = last_day if i + 1 == len(targets) else min(targets[i + 1].effective_date - timedelta(days=1), last_day)
+        if start > end:
+            continue
+        logged = [r.totals for r in rows if start <= r.day <= end and r.totals]
+        weighed = [p for p in points if start <= p.day <= end]
+        slope = weight.slope_per_day(weighed)
+        trend_start = weight.trend_on(points, start - timedelta(days=1))
+        if trend_start is None and weighed:
+            trend_start = weighed[0].trend
+        periods.append(
+            TargetPeriod(
+                start=start,
+                end=end,
+                target=target.macros,
+                days_logged=len(logged),
+                avg_calories=round(_mean([t.calories for t in logged])) if logged else None,
+                avg_protein=round(_mean([t.protein for t in logged]), 1) if logged else None,
+                days_near_target=sum(1 for t in logged if abs(t.calories - target.calories) <= NEAR_TARGET * target.calories),
+                weigh_ins=len(weighed),
+                trend_start=trend_start,
+                trend_end=weight.trend_on(points, end),
+                rate=None if slope is None else slope * 7,
+            )
+        )
+    return periods
 
 
 def _csv(header: list[str], rows: list[list]) -> str:
@@ -180,6 +236,8 @@ def render_prompt(db: Session, today: date, start: date, end: date, rows: list[D
         protein_per_lb=(avg("totals", "protein") / trend_now) if trend_now and logged else None,
         bal=weight.balance(db, points, today),
         weeks=[w for w in weight.weekly(db, points, today, weeks=weeks) if w.start <= end],
+        periods=target_periods(db, rows, points),
+        near_target_pct=round(NEAR_TARGET * 100),
         alpha=weight.ALPHA,
         window_days=weight.WINDOW_DAYS,
         min_days=weight.MIN_DAYS,

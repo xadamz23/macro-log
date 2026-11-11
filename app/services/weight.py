@@ -81,7 +81,7 @@ def trend_on(points: list[TrendPoint], day: date) -> float | None:
     return points[index].trend if index >= 0 else None
 
 
-def _slope_per_day(points: list[TrendPoint]) -> float | None:
+def slope_per_day(points: list[TrendPoint]) -> float | None:
     if len(points) < 2:
         return None
     xs = [p.day.toordinal() for p in points]
@@ -129,7 +129,7 @@ def balance(db: Session, points: list[TrendPoint], today: date) -> Balance:
     avg_calories = round(sum(t.calories for t in totals.values()) / len(totals)) if totals else None
 
     rate = deficit = maintenance = None
-    slope = _slope_per_day(window)
+    slope = slope_per_day(window)
     if days_both >= MIN_DAYS and slope is not None and avg_calories is not None:
         rate = slope * 7
         deficit = round(-slope * KCAL_PER_LB)

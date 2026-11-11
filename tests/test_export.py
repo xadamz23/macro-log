@@ -3,7 +3,7 @@ import io
 from datetime import UTC, date, datetime, timedelta
 
 from app.services.entries import create_entry
-from app.services.export import daily_csv, daily_rows, entries_csv, export_range, render_prompt
+from app.services.export import daily_csv, daily_rows, entries_csv, export_range, render_prompt, target_periods
 from app.services.macros import Macros
 from app.services.profile import ProfileData, save_profile
 from app.services.targets import set_targets
@@ -109,3 +109,66 @@ def test_prompt_weekly_skips_week_starting_today(db):
     text = render_prompt(db, monday, start, end, daily_rows(db, start, end, []), [])
     assert "| 2026-10-12 |" not in text
     assert "| 2026-10-05 | 2000 |" in text
+
+
+def _periods(db, start, end):
+    points = trend_points(db)
+    return target_periods(db, daily_rows(db, start, end, points), points)
+
+
+def test_target_periods_split_at_each_change_and_clip_to_range(db):
+    set_targets(db, date(2026, 10, 1), Macros(2000, 150, 70, 200))
+    set_targets(db, date(2026, 10, 10), Macros(2500, 180, 80, 260))
+    create_entry(db, day=date(2026, 10, 8), macros=Macros(1900, 140, 60, 190))
+    create_entry(db, day=date(2026, 10, 8), macros=Macros(100, 10, 5, 5))
+    create_entry(db, day=date(2026, 10, 11), macros=Macros(2400, 170, 80, 250))
+    for day, lb in [(8, 180.0), (9, 180.2), (11, 180.6), (12, 180.8)]:
+        save_weigh_in(db, date(2026, 10, day), lb)
+
+    first, second = _periods(db, date(2026, 10, 8), date(2026, 10, 12))
+
+    assert (first.start, first.end, first.days, first.target.calories) == (date(2026, 10, 8), date(2026, 10, 9), 2, 2000)
+    assert (first.days_logged, first.avg_calories, first.avg_protein, first.days_near_target) == (1, 2000, 150.0, 1)
+    assert first.weigh_ins == 2
+    assert first.trend_start == 180.0
+    assert round(first.rate, 2) == 1.4
+    assert (second.start, second.end, second.days, second.target.calories) == (date(2026, 10, 10), date(2026, 10, 12), 3, 2500)
+    assert (second.days_logged, second.avg_calories, second.days_near_target, second.weigh_ins) == (1, 2400, 1, 2)
+    assert second.trend_start == first.trend_end
+    assert round(second.rate, 2) == 1.4
+
+
+def test_target_periods_skip_days_before_the_first_target(db):
+    set_targets(db, date(2026, 10, 10), Macros(2500, 180, 80, 260))
+    create_entry(db, day=date(2026, 10, 8), macros=Macros(1000))
+    (only,) = _periods(db, date(2026, 10, 8), date(2026, 10, 12))
+    assert (only.start, only.days_logged, only.avg_calories) == (date(2026, 10, 10), 0, None)
+    assert (only.weigh_ins, only.trend_start, only.trend_end, only.rate) == (0, None, None, None)
+
+
+def test_near_target_means_within_ten_percent_of_calories(db):
+    set_targets(db, date(2026, 10, 1), Macros(2500, 180, 80, 260))
+    create_entry(db, day=date(2026, 10, 10), macros=Macros(2750))
+    create_entry(db, day=date(2026, 10, 11), macros=Macros(2751))
+    (only,) = _periods(db, date(2026, 10, 10), date(2026, 10, 11))
+    assert (only.days_logged, only.days_near_target) == (2, 1)
+
+
+def test_target_periods_none_without_targets(db):
+    create_entry(db, day=YESTERDAY, macros=Macros(2000))
+    assert _periods(db, YESTERDAY, YESTERDAY) == []
+
+
+def test_prompt_has_target_period_table_and_instruction(db):
+    set_targets(db, date(2026, 10, 1), Macros(2000, 150, 70, 200))
+    set_targets(db, date(2026, 10, 8), Macros(2500, 180, 80, 260))
+    create_entry(db, day=date(2026, 10, 5), macros=Macros(2100, 150, 70, 200))
+    text = _prompt(db)
+    assert "### By target period" in text
+    assert "| 2026-10-05 to 2026-10-07 | 3 | 2000 kcal · P 150 · F 70 · C 200 | 1 | 2100 | 150 | 1 / 1 |" in text
+    assert "| 2026-10-08 to 2026-10-12 | 5 | 2500 kcal · P 180 · F 80 · C 260 | 0 |" in text
+    assert "**Target periods:**" in text
+
+
+def test_prompt_without_targets_says_no_periods(db):
+    assert "No targets set, so there are no periods to compare." in _prompt(db)

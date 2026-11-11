@@ -68,15 +68,30 @@ You can check or challenge these methods:
 | {{ w.start.isoformat() }} | {{ w.avg_calories if w.avg_calories is not none else "–" }} | {{ w.avg_protein|num }} | {{ w.trend_change|signed }} |
 {% endfor %}
 
+### By target period (oldest first)
+
+{% if periods %}
+Each row is a stretch when one set of targets was in effect, clipped to this export's range. "Near target" counts logged days within ±{{ near_target_pct }}% of the calorie target. "Trend" runs from the trend weight the day before the period to its last day. "Rate" is a least-squares fit of that period's weigh-ins, the same method as the maintenance estimate.
+
+| Period | Days | Target | Days logged | Avg kcal | Avg protein (g) | Near target | Weigh-ins | Trend (lb) | Rate (lb/week) |
+|---|---|---|---|---|---|---|---|---|---|
+{% for p in periods %}
+| {{ p.start.isoformat() }} to {{ p.end.isoformat() }} | {{ p.days }} | {{ p.target.calories }} kcal · P {{ p.target.protein|num }} · F {{ p.target.fat|num }} · C {{ p.target.carbs|num }} | {{ p.days_logged }} | {{ p.avg_calories if p.avg_calories is not none else "–" }} | {{ p.avg_protein|num }} | {{ p.days_near_target }} / {{ p.days_logged }} | {{ p.weigh_ins }} | {{ p.trend_start|num }} → {{ p.trend_end|num }} | {{ p.rate|signed(2) }} |
+{% endfor %}
+{% else %}
+No targets set, so there are no periods to compare.
+{% endif %}
+
 ## What to analyze
 
 1. **Data quality:** how consistently I log and weigh in. Point out gaps, suspected incomplete days, and outliers, and tell me how much they limit your conclusions.
 2. **Adherence:** how close I am to my targets, both on average and in day-to-day spread. Note any patterns, such as weekends or particular weeks.
-3. **Protein:** the amount per lb and per kg of bodyweight, compared with evidence-based ranges for building muscle. Using `entries.csv` times, also look at how it is spread across the day (number of protein feedings and their size).
-4. **Rate of change versus goal:** whether my weight trend is moving at a sensible rate for my goal and training. For a lean bulk, say whether the gain looks too fast (likely excess fat gain) or too slow (possibly leaving muscle gain on the table).
-5. **Energy balance check:** whether the observed trend change matches my logged intake. Work out your own maintenance estimate and compare it with the app's. Allow for water, glycogen, and sodium noise, and say whether under-logging looks likely.
-6. **Recommendations:** specific new targets (kcal, protein, fat, carbs), each with your reasoning, or a clear "keep as is". Give me anything else worth changing.
-7. **What to watch:** what to monitor over the next 2–4 weeks, what results would mean I should adjust, and when I should export again.
+3. **Target periods:** using the by-target-period table and `daily.csv`, compare each period: what I actually ate against that target, and what my weight did. For each target change, say whether it had the effect it was meant to, and whether any shortfall came from the target itself or from my adherence to it. Only judge a weight rate from a period of at least 3 weeks with regular weigh-ins; for a shorter one, say it's too early to tell. Discount the first 1–2 weeks after a change: the trend weight lags behind real changes, and a change in carbs or sodium can shift water weight by a pound or two on its own.
+4. **Protein:** the amount per lb and per kg of bodyweight, compared with evidence-based ranges for building muscle. Using `entries.csv` times, also look at how it is spread across the day (number of protein feedings and their size).
+5. **Rate of change versus goal:** whether my weight trend is moving at a sensible rate for my goal and training. For a lean bulk, say whether the gain looks too fast (likely excess fat gain) or too slow (possibly leaving muscle gain on the table).
+6. **Energy balance check:** whether the observed trend change matches my logged intake. Work out your own maintenance estimate and compare it with the app's. Allow for water, glycogen, and sodium noise, and say whether under-logging looks likely.
+7. **Recommendations:** specific new targets (kcal, protein, fat, carbs), each with your reasoning, or a clear "keep as is". Give me anything else worth changing.
+8. **What to watch:** what to monitor over the next 2–4 weeks, what results would mean I should adjust, and when I should export again.
 
 ## Output format
 
