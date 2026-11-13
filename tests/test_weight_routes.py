@@ -95,3 +95,15 @@ def test_weight_data(client, db):
     assert len(data["labels"]) == 30 and data["weights"][-1] == 180.0
     assert client.get("/weight/data?days=3").status_code == 422
     assert client.get("/weight/data?days=400").status_code == 422
+
+
+def test_weight_page_desktop_dashboard(client, db):
+    for n in range(20, 0, -1):
+        day = TODAY - timedelta(days=n)
+        save_weigh_in(db, day, 190 - 0.1 * (20 - n))
+        create_entry(db, day=day, macros=Macros(2200, 150, 70, 200))
+    r = client.get("/weight")
+    assert "Est. maintenance" in r.text and "Weekly change" in r.text
+    assert r.text.count('class="wkc-col"') == 12
+    # Phones still get the first four weeks; the other eight are desktop-only rows.
+    assert r.text.count('<tr class="dash-only">') == 8

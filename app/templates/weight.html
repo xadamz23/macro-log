@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Weight · Macro Log{% endblock %}
 {% block content %}
+{# A single column on phones; a 12-column dashboard at 1100px and up (see .dash in app.css). #}
+<div class="dash dash-weight">
 <header class="day-header"><h1>Weight</h1>{% include "partials/header_menu.html" %}</header>
 {% include "partials/weight_body.html" %}
+</div>
 {% endblock %}

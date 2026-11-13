@@ -62,3 +62,35 @@ def test_chart_series_shape_and_gaps(db):
     assert data["series"]["calories"][-3] is None
     assert data["targets"]["calories"][-1] == 2500
     assert data["targets"]["calories"][0] == 2000
+
+
+def test_dashboard_on_target_streak_and_heat(db):
+    from datetime import timedelta
+
+    from app.services.history import dashboard
+
+    set_targets(db, date(2026, 9, 1), Macros(2000, 150, 70, 200))
+    # yesterday and the day before on target, then one over, then one far under
+    for n, kcal in [(1, 2050), (2, 1900), (3, 2400), (4, 1500)]:
+        create_entry(db, day=TODAY - timedelta(days=n), macros=Macros(kcal))
+    create_entry(db, day=TODAY, macros=Macros(300))  # today is in progress: not in the 30-day counts
+
+    dash = dashboard(db, TODAY)
+    assert (dash.on_target, dash.with_target, dash.streak) == (2, 4, 2)
+    assert dash.spark7[-4:] == [1500, 2400, 1900, 2050]
+    assert len(dash.spark30) == 30 and dash.spark30[0] is None
+
+    assert len(dash.heat) == 13 * 7
+    assert dash.heat[0].day.weekday() == 0 and dash.heat[-1].day.weekday() == 6
+    by_day = {c.day: c for c in dash.heat}
+    assert [by_day[TODAY - timedelta(days=n)].level for n in (1, 3, 4, 5)] == ["on", "over", "low", ""]
+    assert by_day[TODAY].is_today
+    assert all(c.level == "fut" for c in dash.heat if c.day > TODAY)
+
+
+def test_dashboard_without_targets(db):
+    from app.services.history import dashboard
+
+    create_entry(db, day=date(2026, 10, 12), macros=Macros(1800))
+    dash = dashboard(db, TODAY)
+    assert (dash.on_target, dash.with_target, dash.streak) == (0, 0, 0)

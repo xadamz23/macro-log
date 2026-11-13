@@ -31,6 +31,11 @@ Tailwind or build step, so a new class works as soon as it's in that file.
 - **Bottom nav** floats clear of the screen edges and is no wider than the page column. The + log button is a flat
   44px accent-outline ring (`.log-btn`), not `.accent`, so it doesn't read as a second current-page pill. Mark the current item with
   `aria-current="page"` (the `nav_item` macro in `base.html` does this); don't add an `active` class.
+- **Desktop dashboards (History, Weight):** at 1100px and up, `.dash` turns each page into a 12-column grid
+  (`grid-template-areas` in the "Desktop dashboards" block at the end of `app.css`). Phones must stay exactly as they
+  were: desktop-only markup gets `dash-only` (hidden below 1100px), phone-only markup gets `mobile-only`, and each
+  `.charts` card becomes `display: contents` on desktop so its `.chart-panel`s and range control are grid items. On
+  phones the panels are flattened back into the one glass card.
 - **Colors:** use the `:root` tokens. `--accent` is the light tint for text, lines and focus rings; the
   `--accent-from`/`--accent-to` gradient is only for filled controls. Macro colors (`--cal`, `--protein`, `--fat`,
   `--carbs`) are data colors: keep the accent visually distinct from them. `app.js` reads `--muted`, `--border`,

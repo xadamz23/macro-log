@@ -1,9 +1,13 @@
 {% extends "base.html" %}
+{% from "partials/dash_macros.html" import sparkline, meter %}
 {% block title %}History · Macro Log{% endblock %}
 {% block content %}
+{# On phones this is the single column it always was. At 1100px and up, .dash becomes a 12-column grid: the
+   dash-only tiles and side cards appear, and the charts card splits into one panel per chart. #}
+<div class="dash dash-history">
 <header class="day-header"><h1>History</h1>{% include "partials/header_menu.html" %}</header>
 
-<section class="card glass stats">
+<section class="card glass stats mobile-only">
   {% for label, avg in [("7-day avg", avg7), ("30-day avg", avg30)] %}
   <div>
     <div class="stat-label">{{ label }}</div>
@@ -18,22 +22,117 @@
   {% endfor %}
 </section>
 
-<section class="card glass" x-data="historyCharts(30)">
+{% for label, avg, spark in [("7-day avg", avg7, dash.spark7), ("30-day avg", avg30, dash.spark30)] %}
+<section class="card glass kpi dash-only kpi-{{ loop.index }}">
+  <div class="kpi-label">{{ label }}</div>
+  {% if avg %}
+  <div class="kpi-value">{{ "{:,}".format(avg.totals.calories) }} <small>kcal</small></div>
+  <div class="kpi-sub">{% if avg.targets %}target <strong>{{ "{:,}".format(avg.targets.calories) }}</strong> · {% endif %}{{ avg.days_logged }} day{{ "s" if avg.days_logged != 1 }} logged</div>
+  {{ sparkline(spark, "--cal") }}
+  {% else %}
+  <div class="kpi-sub">No data yet</div>
+  {% endif %}
+</section>
+{% endfor %}
+
+<section class="card glass kpi dash-only kpi-3">
+  <div class="kpi-label">Avg protein · 30d</div>
+  {% if avg30 %}
+  <div class="kpi-value">{{ avg30.totals.protein|round|int }} <small>g</small></div>
+  {% if avg30.targets and avg30.targets.protein %}
+  {% set pct = (avg30.totals.protein / avg30.targets.protein * 100)|round|int %}
+  <div class="kpi-sub">target <strong>{{ avg30.targets.protein|round|int }} g</strong> · {{ pct }}%</div>
+  {{ meter(pct, "--protein") }}
+  {% endif %}
+  {% else %}
+  <div class="kpi-sub">No data yet</div>
+  {% endif %}
+</section>
+
+<section class="card glass kpi dash-only kpi-4">
+  <div class="kpi-label">On target · 30d</div>
+  {% if dash.with_target %}
+  <div class="kpi-value">{{ dash.on_target }} <small>of {{ dash.with_target }} days</small></div>
+  <div class="kpi-sub">within ±10% of calories</div>
+  {{ meter(dash.on_target / dash.with_target * 100, "--accent") }}
+  {% if dash.streak >= 2 %}<span class="glass-chip chip-good">{{ dash.streak }}-day streak</span>{% endif %}
+  {% else %}
+  <div class="kpi-sub">No days with a calorie target yet</div>
+  {% endif %}
+</section>
+
+<section class="card glass charts" x-data="historyCharts(30)">
   <div class="segmented glass" role="group" aria-label="Chart range">
     {% for n in [14, 30, 90] %}
     <button type="button" :class="days === {{ n }} && 'accent'" @click="setRange({{ n }})">{{ n }}d</button>
     {% endfor %}
   </div>
-  <div class="chart-box"><canvas x-ref="calories" aria-label="Calories per day" role="img"></canvas></div>
-  <div class="chart-box"><canvas x-ref="macros" aria-label="Protein, fat and carbs per day" role="img"></canvas></div>
+  <div class="card glass chart-panel panel-cal">
+    <h2 class="dash-only">Calories per day</h2>
+    <div class="chart-box"><canvas x-ref="calories" aria-label="Calories per day" role="img"></canvas></div>
+  </div>
+  <div class="card glass chart-panel panel-mac">
+    <h2 class="dash-only">Macros per day</h2>
+    <div class="chart-box"><canvas x-ref="macros" aria-label="Protein, fat and carbs per day" role="img"></canvas></div>
+  </div>
 </section>
 
-<section class="card glass">
+<div class="dash-only dash-side">
+  {% if avg30 %}
+  <section class="card glass">
+    <div class="card-head"><h2>Macros vs target</h2><span class="kpi-sub">30-day avg</span></div>
+    <div class="bars">
+      {% for key, label in [("protein", "Protein"), ("fat", "Fat"), ("carbs", "Carbs")] %}
+      {% set value = avg30.totals|attr(key) %}
+      {% set target = avg30.targets|attr(key) if avg30.targets else none %}
+      <div class="bar-{{ key }}{% if target and value > target %} over{% endif %}">
+        <div class="bar-head"><span class="bar-label">{{ label }}</span><span class="bar-value"><strong>{{ value|round|int }}</strong>{% if target %} / {{ target|round|int }}{% endif %} g</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width: {{ [value / target * 100, 100]|min if target else 0 }}%"></div></div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% set t = avg30.totals %}
+  {% set kcal = t.protein * 4 + t.fat * 9 + t.carbs * 4 %}
+  {% if kcal %}
+  {% set p, f = (t.protein * 4 / kcal * 100)|round|int, (t.fat * 9 / kcal * 100)|round|int %}
+  <section class="card glass">
+    <div class="card-head"><h2>Calorie split</h2><span class="kpi-sub">30-day avg</span></div>
+    <div class="split-bar" aria-hidden="true">
+      <span style="flex: {{ p }}; background: var(--protein)"></span><span style="flex: {{ f }}; background: var(--fat)"></span><span style="flex: {{ 100 - p - f }}; background: var(--carbs)"></span>
+    </div>
+    <div class="split-key">
+      <div><b class="m-protein">{{ p }}%</b>Protein</div><div><b class="m-fat">{{ f }}%</b>Fat</div><div><b class="m-carbs">{{ 100 - p - f }}%</b>Carbs</div>
+    </div>
+  </section>
+  {% endif %}
+  {% endif %}
+</div>
+
+<section class="card glass dash-only dash-heat">
+  <div class="card-head"><h2>Consistency</h2><span class="kpi-sub">13 weeks</span></div>
+  <div class="heat">
+    <div class="heat-dow" aria-hidden="true"><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span><span>Sun</span></div>
+    <div class="heat-cells">
+      {% for c in dash.heat %}
+      <i class="{{ c.level }}{% if c.is_today %} is-today{% endif %}"{% if c.level != "fut" %} title="{{ c.day|day(today) }}: {% if c.calories is none %}nothing logged{% else %}{{ "{:,}".format(c.calories) }}{% if c.target %} / {{ "{:,}".format(c.target) }}{% endif %} kcal{% endif %}"{% endif %}></i>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="heat-legend" aria-hidden="true">
+    <i></i>none <i class="low"></i><i class="near"></i><i class="on"></i>on target <span class="sp"></span><i class="over"></i>over
+  </div>
+  <p class="note">One square per day, Monday to Sunday down each column. Brighter is closer to your calorie target; hover for the numbers.</p>
+</section>
+
+<section class="card glass days-card">
   <h2>Days</h2>
   {% if days %}
+  <div class="days-head dash-only" aria-hidden="true"><span>Day</span><span>Entries</span><span>Calories</span><span>Protein</span><span>Fat</span><span>Carbs</span></div>
   <ul class="list">{% include "partials/day_rows.html" %}</ul>
   {% else %}
   <p class="empty">No days logged yet.</p>
   {% endif %}
 </section>
+</div>
 {% endblock %}

@@ -45,7 +45,10 @@ def _body_context(db, today: date) -> dict:
         **_card_context(db, today),
         "trend": points[-1].trend if points else None,
         "bal": balance(db, points, today),
-        "weeks": weekly(db, points, today),
+        # Phones show the first 4; the desktop dashboard shows all 12 and charts their trend change.
+        "weeks": weekly(db, points, today, weeks=12),
+        "first": points[0] if points else None,
+        "trend_spark": chart_series(points, today, 90)["trend"],
         "weigh_ins": recent_weigh_ins(db),
         "min_days": MIN_DAYS,
     }

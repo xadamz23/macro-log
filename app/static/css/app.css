@@ -654,3 +654,115 @@ textarea { resize: vertical; }
 @media (min-width: 700px) {
   .sheet { left: 50%; right: auto; width: 640px; transform: translateX(-50%); border-width: 1px 1px 0; }
 }
+
+/* ===== Desktop dashboards (History, Weight) =====
+   Phones keep the single column. At 1100px and up, .dash becomes a 12-column grid: .dash-only pieces (summary
+   tiles, side cards) show, .mobile-only ones hide, and each charts card (.charts) dissolves with display: contents
+   so its chart panels and range control become grid items of their own. */
+@media (max-width: 1099.98px) {
+  .dash-only { display: none !important; }
+  /* On phones the charts card is the glass; its panels are plain wrappers (and an inner blur would stack). */
+  .chart-panel { padding: 0; margin: 0; border: 0; border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; }
+}
+
+.card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+.card-head h2 { margin: 0; }
+.kpi { display: grid; gap: 4px; align-content: start; }
+.kpi-label { font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.kpi-value { font-size: 1.9rem; font-weight: 750; line-height: 1.1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.kpi-value small { font-size: 0.85rem; font-weight: 600; letter-spacing: 0; color: var(--muted); }
+.kpi-value.muted { color: var(--muted); }
+.kpi-accent { color: var(--accent); }
+.kpi-sub { font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.kpi-sub strong { color: var(--text); font-weight: 600; }
+.kpi .glass-chip { width: fit-content; margin-top: 8px; }
+.chip-good { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+.chip-warn { color: var(--cal); border-color: color-mix(in srgb, var(--cal) 40%, transparent); }
+.kpi-meter { height: 6px; margin-top: 8px; }
+.spark { display: block; width: 100%; height: 40px; margin-top: 8px; overflow: visible; }
+.spark-line { fill: none; stroke: var(--spark); stroke-width: 2; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.spark-area { fill: color-mix(in srgb, var(--spark) 14%, transparent); }
+
+.split-bar { display: flex; gap: 2px; height: 14px; margin: 4px 0 10px; border-radius: 999px; overflow: hidden; }
+.split-key { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 0.8rem; color: var(--muted); }
+.split-key b { display: block; font-size: 1rem; font-variant-numeric: tabular-nums; }
+
+/* Consistency: one square per day, Monday-start weeks as columns. */
+.heat { display: grid; grid-template-columns: auto 1fr; gap: 8px; }
+.heat-dow { display: grid; grid-template-rows: repeat(7, 1fr); gap: 4px; align-items: center; font-size: 0.68rem; color: var(--muted); }
+.heat-cells { display: grid; grid-template-rows: repeat(7, auto); grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; }
+.heat-cells i, .heat-legend i { display: block; border-radius: 4px; background: var(--track); }
+.heat-cells i { aspect-ratio: 1; }
+.heat-cells i.fut { background: none; }
+.heat-cells i.is-today { outline: 1.5px solid var(--text); outline-offset: 1px; }
+.heat-cells i.low, .heat-legend i.low { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+.heat-cells i.near, .heat-legend i.near { background: color-mix(in srgb, var(--accent) 50%, transparent); }
+.heat-cells i.on, .heat-legend i.on { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+.heat-cells i.over, .heat-legend i.over {
+  background: repeating-linear-gradient(-45deg, var(--over) 0 3px, color-mix(in srgb, var(--over) 45%, transparent) 3px 6px);
+}
+.heat-legend { display: flex; align-items: center; gap: 4px; margin-top: 12px; font-size: 0.72rem; color: var(--muted); }
+.heat-legend i { width: 12px; height: 12px; border-radius: 3px; }
+.heat-legend .sp { flex: 1; }
+
+/* Weekly change: gains rise above the line in the calorie color, losses drop below it in the accent. */
+.wkc { display: flex; gap: 6px; height: 140px; }
+.wkc-col { flex: 1; display: grid; grid-template-rows: 1fr 1fr; }
+.wkc-up { display: flex; align-items: flex-end; border-bottom: 1px solid var(--border); }
+.wkc-col i { display: block; width: 100%; min-height: 2px; }
+.wkc-up i { background: var(--cal); border-radius: 3px 3px 0 0; }
+.wkc-down i { background: var(--accent); border-radius: 0 0 3px 3px; }
+.wkc-axis { display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.72rem; color: var(--muted); }
+
+@media (min-width: 1100px) {
+  .mobile-only { display: none !important; }
+  .page:has(.dash .chart-panel) { max-width: 1240px; padding-left: 32px; padding-right: 32px; padding-top: 28px; }
+  .dash:has(.chart-panel) { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; align-items: start; }
+  .dash:has(.chart-panel) .card { margin-bottom: 0; padding: 20px; }
+  .dash:has(.chart-panel) :is(.charts, #weight-body) { display: contents; }
+  .dash:has(.chart-panel) .day-header { grid-area: head; margin: 0 0 4px; }
+  .dash:has(.chart-panel) h1 { font-size: 1.75rem; }
+  /* The range control sits in the header row, left of the menu button. */
+  .dash:has(.chart-panel) .charts > .segmented { grid-area: head; justify-self: end; align-self: center; margin: 0 52px 0 0; }
+  .dash .kpi, .dash #weigh-card { align-self: stretch; }
+  .kpi-1 { grid-area: k1; } .kpi-2 { grid-area: k2; } .kpi-3 { grid-area: k3; } .kpi-4 { grid-area: k4; }
+  .chart-panel .chart-box { height: 300px; margin-bottom: 0; }
+
+  .dash-history {
+    grid-template-areas:
+      "head head head head head head head head head head head head"
+      "k1 k1 k1 k2 k2 k2 k3 k3 k3 k4 k4 k4"
+      "cal cal cal cal cal cal cal cal side side side side"
+      "mac mac mac mac mac mac mac mac heat heat heat heat"
+      "days days days days days days days days days days days days";
+  }
+  .panel-cal { grid-area: cal; }
+  .panel-mac { grid-area: mac; }
+  .dash-side { grid-area: side; display: grid; gap: 16px; }
+  .dash-heat { grid-area: heat; align-self: stretch; }
+  .days-card { grid-area: days; }
+  /* Days list as a table: the row's head and bars dissolve into one grid row. */
+  .days-head, .day-row { display: grid; grid-template-columns: minmax(150px, 1.2fr) 90px repeat(4, minmax(0, 1fr)); gap: 0 20px; align-items: center; }
+  .days-head { padding: 0 8px 8px; font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .days-card .day-row { padding: 10px 8px; border-radius: 10px; transition: background 0.15s; }
+  .days-card .day-row:hover { background: var(--hover); }
+  .days-card :is(.day-row-head, .mini-bars) { display: contents; }
+  .days-card .mini-bar-label { font-size: 0.8rem; }
+
+  .dash-weight {
+    grid-template-areas:
+      "head head head head head head head head head head head head"
+      "k1 k1 k1 k2 k2 k2 k3 k3 k3 k4 k4 k4"
+      "chart chart chart chart chart chart chart chart bal bal bal bal"
+      "chart chart chart chart chart chart chart chart wkc wkc wkc wkc"
+      "weeks weeks weeks weeks weeks weeks weeks weeks list list list list";
+  }
+  .dash-weight #weigh-card { grid-area: k1; }
+  .panel-trend { grid-area: chart; align-self: stretch; }
+  .panel-trend .chart-box { height: 420px; }
+  .dash-balance { grid-area: bal; }
+  .dash-wkchange { grid-area: wkc; }
+  .dash-weeks { grid-area: weeks; }
+  .dash-weighins { grid-area: list; }
+  .dash-weighins .entry-list { max-height: 480px; overflow-y: auto; margin: 0 -20px; padding: 0 20px; scrollbar-width: thin; }
+}

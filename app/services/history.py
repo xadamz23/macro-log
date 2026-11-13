@@ -104,3 +104,78 @@ def chart_series(db: Session, today: date, days: int) -> dict:
             series[key].append(getattr(summary.totals, key) if summary else None)
             targets[key].append(getattr(target, key) if target else None)
     return {"labels": labels, "series": series, "targets": targets}
+
+
+ON_TARGET = 0.10  # within ±10% of the calorie target counts as on target
+HEAT_WEEKS = 13
+
+
+@dataclass(frozen=True)
+class HeatCell:
+    day: date
+    level: str  # "", "fut", "low", "near", "on", "over"
+    calories: int | None
+    target: int | None
+    is_today: bool
+
+
+@dataclass(frozen=True)
+class Dashboard:
+    """Desktop-only extras for the History page, all from day totals and their targets."""
+
+    spark7: list[int | None]  # calories per day, oldest first, today excluded
+    spark30: list[int | None]
+    on_target: int  # of the logged days with a calorie target in the last 30 days
+    with_target: int
+    streak: int  # consecutive on-target days ending yesterday
+    heat: list[HeatCell]  # 13 Monday-start weeks, chronological, ending this Sunday
+
+
+def _level(calories: int, target: int | None) -> str:
+    if not target:
+        return "low"
+    off = (calories - target) / target
+    if off > ON_TARGET:
+        return "over"
+    if abs(off) <= ON_TARGET:
+        return "on"
+    return "near" if abs(off) <= 2 * ON_TARGET else "low"
+
+
+def dashboard(db: Session, today: date) -> Dashboard:
+    first = today - timedelta(days=today.weekday()) - timedelta(weeks=HEAT_WEEKS - 1)
+    start = min(first, today - timedelta(days=30))
+    by_day = {s.day: s for s in _summaries(db, Entry.day >= start, Entry.day <= today)}
+
+    def calories(day: date) -> int | None:
+        s = by_day.get(day)
+        return s.totals.calories if s else None
+
+    def target(day: date) -> int | None:
+        s = by_day.get(day)
+        return s.targets.calories if s and s.targets else None
+
+    past = [today - timedelta(days=n) for n in range(30, 0, -1)]
+    rated = [d for d in past if calories(d) is not None and target(d)]
+    on_target = sum(1 for d in rated if _level(calories(d), target(d)) == "on")
+    streak = 0
+    for d in reversed(past):
+        if calories(d) is None or _level(calories(d), target(d)) != "on":
+            break
+        streak += 1
+
+    heat = []
+    for offset in range(HEAT_WEEKS * 7):
+        day = first + timedelta(days=offset)
+        cal = calories(day)
+        level = "fut" if day > today else "" if cal is None else _level(cal, target(day))
+        heat.append(HeatCell(day, level, cal, target(day), day == today))
+
+    return Dashboard(
+        spark7=[calories(d) for d in past[-7:]],
+        spark30=[calories(d) for d in past],
+        on_target=on_target,
+        with_target=len(rated),
+        streak=streak,
+        heat=heat,
+    )

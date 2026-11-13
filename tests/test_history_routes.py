@@ -39,3 +39,14 @@ def test_history_data(client, db):
     assert len(data["labels"]) == 14
     assert data["series"]["calories"][-1] == 500
     assert client.get("/history/data?days=3").status_code == 422
+
+
+def test_history_page_has_desktop_dashboard(client, db):
+    set_targets(db, date(2026, 10, 1), Macros(2000, 150, 70, 200))
+    for n in (1, 2):
+        create_entry(db, day=TODAY - timedelta(days=n), macros=Macros(2000, 140, 60, 200))
+    r = client.get("/history")
+    assert "On target · 30d" in r.text and "2 <small>of 2 days</small>" in r.text and "2-day streak" in r.text
+    assert "Macros vs target" in r.text and "Calorie split" in r.text
+    assert r.text.count('class="spark"') == 2
+    assert 'class="card glass chart-panel panel-cal"' in r.text

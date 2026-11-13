@@ -49,10 +49,25 @@ def fmt_time(value: datetime, tz: str) -> str:
     return to_local(value, tz).strftime("%I:%M %p").lstrip("0")
 
 
+def spark_paths(values: list[float | None], width: int = 200, height: int = 40) -> dict | None:
+    """SVG line and area paths for a sparkline; gaps (None) are skipped, so the line joins across them."""
+    points = [(i, v) for i, v in enumerate(values) if v is not None]
+    if len(points) < 2:
+        return None
+    lo, hi = min(v for _, v in points), max(v for _, v in points)
+    span = (hi - lo) or 1
+    step = width / max(len(values) - 1, 1)
+    pad = 3  # keeps the stroke inside the box at the extremes
+    xy = [(round(i * step, 1), round(pad + (hi - v) / span * (height - 2 * pad), 1)) for i, v in points]
+    line = "M" + " L".join(f"{x} {y}" for x, y in xy)
+    return {"line": line, "area": f"{line} L{xy[-1][0]} {height} L{xy[0][0]} {height} Z", "w": width, "h": height}
+
+
 templates.env.filters["num"] = fmt_num
 templates.env.filters["signed"] = fmt_signed
 templates.env.filters["day"] = fmt_day
 templates.env.filters["time"] = fmt_time
 templates.env.globals["icon"] = icon
+templates.env.globals["spark_paths"] = spark_paths
 templates.env.globals["static_url"] = assets.url
 templates.env.globals["asset_version"] = assets.version

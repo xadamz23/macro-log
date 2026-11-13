@@ -1,0 +1,9 @@
+{# Desktop dashboard pieces shared by History and Weight. #}
+{% macro sparkline(values, color) -%}
+{% set p = spark_paths(values) %}
+{% if p %}<svg class="spark" viewBox="0 0 {{ p.w }} {{ p.h }}" preserveAspectRatio="none" aria-hidden="true" style="--spark: var({{ color }})"><path class="spark-area" d="{{ p.area }}"/><path class="spark-line" d="{{ p.line }}"/></svg>{% endif %}
+{%- endmacro %}
+
+{% macro meter(pct, color) -%}
+<div class="bar-track kpi-meter" aria-hidden="true"><div class="bar-fill" style="width: {{ [pct, 100]|min }}%; --bar-color: var({{ color }})"></div></div>
+{%- endmacro %}

@@ -143,6 +143,7 @@ class WeekRow:
     avg_calories: int | None
     avg_protein: float | None
     trend_change: float | None
+    weigh_ins: int = 0
 
 
 def weekly(db: Session, points: list[TrendPoint], today: date, weeks: int = 4) -> list[WeekRow]:
@@ -166,6 +167,7 @@ def weekly(db: Session, points: list[TrendPoint], today: date, weeks: int = 4) -
                 avg_calories=round(sum(t.calories for t in week_totals) / len(week_totals)) if week_totals else None,
                 avg_protein=round(sum(t.protein for t in week_totals) / len(week_totals)) if week_totals else None,
                 trend_change=change,
+                weigh_ins=sum(1 for p in points if start <= p.day <= end),
             )
         )
     return rows

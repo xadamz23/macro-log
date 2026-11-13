@@ -4,7 +4,7 @@ from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse
 
 from app.deps import DB, Today
-from app.services.history import average, chart_series, logged_days
+from app.services.history import average, chart_series, dashboard, logged_days
 from app.templating import templates
 
 router = APIRouter()
@@ -24,6 +24,7 @@ def history_page(request: Request, db: DB, today: Today):
         "nav": "history",
         "avg7": average(db, today, 7),
         "avg30": average(db, today, 30),
+        "dash": dashboard(db, today),
         **_rows_context(db, today, None),
     }
     return templates.TemplateResponse(request, "history.html", context)
