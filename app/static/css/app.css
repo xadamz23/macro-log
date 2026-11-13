@@ -793,7 +793,6 @@ kbd {
 .brand-mark svg { width: 17px; height: 17px; color: #fff; }
 .log-cta { margin: 0 0 14px; min-height: 44px; border-radius: 12px; }
 .log-cta svg { width: 18px; height: 18px; }
-.log-cta kbd { margin-left: 6px; color: rgba(255, 255, 255, 0.85); border-color: rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.1); }
 .side-link {
   display: flex; align-items: center; gap: 12px;
   min-height: 42px; padding: 0 12px;
