@@ -726,7 +726,10 @@ textarea { resize: vertical; }
   .dash:has(.chart-panel) .charts > .segmented { grid-area: head; justify-self: end; align-self: center; margin: 0; }
   .dash .kpi, .dash #weigh-card { align-self: stretch; }
   .kpi-1 { grid-area: k1; } .kpi-2 { grid-area: k2; } .kpi-3 { grid-area: k3; } .kpi-4 { grid-area: k4; }
-  .chart-panel .chart-box { height: 300px; margin-bottom: 0; }
+  /* Chart panels stretch to their grid row and the chart fills what's left. contain: size keeps the canvas from
+     feeding its own height back into the row, so the side cards set the row height and the chart follows. */
+  .chart-panel { align-self: stretch; display: flex; flex-direction: column; }
+  .chart-panel .chart-box { flex: 1 1 auto; height: auto; min-height: 260px; margin-bottom: 0; contain: size; }
 
   .dash-history {
     grid-template-areas:
@@ -738,7 +741,9 @@ textarea { resize: vertical; }
   }
   .panel-cal { grid-area: cal; }
   .panel-mac { grid-area: mac; }
-  .dash-side { grid-area: side; display: grid; gap: 16px; }
+  .dash-side { grid-area: side; align-self: stretch; display: flex; flex-direction: column; gap: 16px; }
+  .dash-side > .card:first-child { flex: 1; display: flex; flex-direction: column; }
+  .dash-side > .card:first-child .bars { flex: 1; align-content: space-evenly; }
   .dash-heat { grid-area: heat; align-self: stretch; }
   .days-card { grid-area: days; }
   /* Days list as a table: the row's head and bars dissolve into one grid row. */
@@ -758,13 +763,16 @@ textarea { resize: vertical; }
       "weeks weeks weeks weeks weeks weeks weeks weeks list list list list";
   }
   .dash-weight #weigh-card { grid-area: k1; }
-  .panel-trend { grid-area: chart; align-self: stretch; }
-  .panel-trend .chart-box { height: 420px; }
-  .dash-balance { grid-area: bal; }
-  .dash-wkchange { grid-area: wkc; }
-  .dash-weeks { grid-area: weeks; }
-  .dash-weighins { grid-area: list; }
-  .dash-weighins .entry-list { max-height: 480px; overflow-y: auto; margin: 0 -20px; padding: 0 20px; scrollbar-width: thin; }
+  .panel-trend { grid-area: chart; }
+  /* The side cards fill their rows, so the gap between them is the grid gap and their outer edges meet the
+     trend panel's top and bottom. */
+  .dash-balance { grid-area: bal; align-self: stretch; }
+  .dash-wkchange { grid-area: wkc; align-self: stretch; display: flex; flex-direction: column; }
+  .dash-wkchange .wkc { flex: 1; height: auto; min-height: 140px; }
+  .dash-weeks { grid-area: weeks; align-self: stretch; }
+  /* The weigh-ins card matches the By week card's height and scrolls inside; its list doesn't set the row height. */
+  .dash-weighins { grid-area: list; align-self: stretch; display: flex; flex-direction: column; }
+  .dash-weighins .entry-list { flex: 1 1 0; min-height: 200px; contain: size; overflow-y: auto; margin: 0 -20px; padding: 0 20px; scrollbar-width: thin; }
 }
 
 /* ===== Desktop shell (1100px and up): sidebar, log drawer, Today, Foods, Settings =====
@@ -880,10 +888,20 @@ kbd {
   .page-foods #food-add { position: sticky; top: 24px; }
 
   /* Settings: targets on the left, everything else on the right. */
-  .page-settings { max-width: 1100px; padding-top: 28px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
-  .page-settings > .day-header { grid-column: 1 / -1; margin-bottom: 4px; }
-  .settings-col { display: grid; gap: 16px; }
-  .settings-col > .card { margin-bottom: 0; }
+  /* Settings: targets, timezone and the quick foods link stack on the left; About me runs down the right. Placed
+     on the grid rather than wrapped, so phones keep the cards in their order. The last row is 1fr so About me's
+     extra height lands there instead of opening gaps between the left-hand cards. */
+  .page-settings {
+    max-width: 1100px; padding-top: 28px;
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto auto auto auto 1fr;
+    gap: 16px; align-items: start;
+  }
+  .page-settings > .day-header { grid-column: 1 / -1; grid-row: 1; margin-bottom: 4px; }
+  .page-settings > .card { margin-bottom: 0; }
+  .page-settings > #targets-card { grid-column: 1; grid-row: 2; }
+  .page-settings > #tz-card { grid-column: 1; grid-row: 3; }
+  .page-settings > .row-link { grid-column: 1; grid-row: 4; }
+  .page-settings > #profile-card { grid-column: 2; grid-row: 2 / 6; }
 
   @media (prefers-reduced-motion: reduce) {
     .side-link, .wk-day, #entries .entry-row, #entries .entry-main::after { transition: none; }

@@ -44,7 +44,10 @@ Tailwind or build step, so a new class works as soon as it's in that file.
   - **History, Weight:** `.dash` turns each page into a 12-column grid (`grid-template-areas` in the "Desktop
     dashboards" block of `app.css`). Each `.charts` card becomes `display: contents` so its `.chart-panel`s and range
     control are grid items; on phones the panels are flattened back into the one glass card.
-  - **Foods, Settings:** two columns (`page_class` block on `<main>`; Settings wraps its cards in `.settings-col`).
+  - **Foods, Settings:** two columns (`page_class` block on `<main>`). Settings places its cards on the grid by id
+    rather than wrapping them, so phones keep the card order.
+  - **Equal heights:** cards that share a grid row stretch to it (`align-self: stretch`). A chart or scrolling list
+    that should follow the row rather than set it gets `contain: size` and a `min-height`.
 - **Colors:** use the `:root` tokens. `--accent` is the light tint for text, lines and focus rings; the
   `--accent-from`/`--accent-to` gradient is only for filled controls. Macro colors (`--cal`, `--protein`, `--fat`,
   `--carbs`) are data colors: keep the accent visually distinct from them. `app.js` reads `--muted`, `--border`,
