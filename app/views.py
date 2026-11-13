@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.services.entries import day_totals, list_entries
 from app.services.foods import list_quick_foods_by_recent_use
+from app.services.history import week_of
 from app.services.macros import build_bars
 from app.services.targets import resolve_targets
 
@@ -19,6 +20,7 @@ def day_context(db: Session, day: date, today: date) -> dict:
         "bars": build_bars(day_totals(db, day), targets),
         "has_targets": targets is not None,
         "entries": list_entries(db, day),
+        "week": week_of(db, day, today),
     }
 
 

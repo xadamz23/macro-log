@@ -3,7 +3,7 @@
 {% block title %}History · Macro Log{% endblock %}
 {% block content %}
 {# On phones this is the single column it always was. At 1100px and up, .dash becomes a 12-column grid: the
-   dash-only tiles and side cards appear, and the charts card splits into one panel per chart. #}
+   desktop-only tiles and side cards appear, and the charts card splits into one panel per chart. #}
 <div class="dash dash-history">
 <header class="day-header"><h1>History</h1>{% include "partials/header_menu.html" %}</header>
 
@@ -23,7 +23,7 @@
 </section>
 
 {% for label, avg, spark in [("7-day avg", avg7, dash.spark7), ("30-day avg", avg30, dash.spark30)] %}
-<section class="card glass kpi dash-only kpi-{{ loop.index }}">
+<section class="card glass kpi desktop-only kpi-{{ loop.index }}">
   <div class="kpi-label">{{ label }}</div>
   {% if avg %}
   <div class="kpi-value">{{ "{:,}".format(avg.totals.calories) }} <small>kcal</small></div>
@@ -35,7 +35,7 @@
 </section>
 {% endfor %}
 
-<section class="card glass kpi dash-only kpi-3">
+<section class="card glass kpi desktop-only kpi-3">
   <div class="kpi-label">Avg protein · 30d</div>
   {% if avg30 %}
   <div class="kpi-value">{{ avg30.totals.protein|round|int }} <small>g</small></div>
@@ -49,7 +49,7 @@
   {% endif %}
 </section>
 
-<section class="card glass kpi dash-only kpi-4">
+<section class="card glass kpi desktop-only kpi-4">
   <div class="kpi-label">On target · 30d</div>
   {% if dash.with_target %}
   <div class="kpi-value">{{ dash.on_target }} <small>of {{ dash.with_target }} days</small></div>
@@ -68,16 +68,16 @@
     {% endfor %}
   </div>
   <div class="card glass chart-panel panel-cal">
-    <h2 class="dash-only">Calories per day</h2>
+    <h2 class="desktop-only">Calories per day</h2>
     <div class="chart-box"><canvas x-ref="calories" aria-label="Calories per day" role="img"></canvas></div>
   </div>
   <div class="card glass chart-panel panel-mac">
-    <h2 class="dash-only">Macros per day</h2>
+    <h2 class="desktop-only">Macros per day</h2>
     <div class="chart-box"><canvas x-ref="macros" aria-label="Protein, fat and carbs per day" role="img"></canvas></div>
   </div>
 </section>
 
-<div class="dash-only dash-side">
+<div class="desktop-only dash-side">
   {% if avg30 %}
   <section class="card glass">
     <div class="card-head"><h2>Macros vs target</h2><span class="kpi-sub">30-day avg</span></div>
@@ -109,7 +109,7 @@
   {% endif %}
 </div>
 
-<section class="card glass dash-only dash-heat">
+<section class="card glass desktop-only dash-heat">
   <div class="card-head"><h2>Consistency</h2><span class="kpi-sub">13 weeks</span></div>
   <div class="heat">
     <div class="heat-dow" aria-hidden="true"><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span><span>Sun</span></div>
@@ -128,7 +128,7 @@
 <section class="card glass days-card">
   <h2>Days</h2>
   {% if days %}
-  <div class="days-head dash-only" aria-hidden="true"><span>Day</span><span>Entries</span><span>Calories</span><span>Protein</span><span>Fat</span><span>Carbs</span></div>
+  <div class="days-head desktop-only" aria-hidden="true"><span>Day</span><span>Entries</span><span>Calories</span><span>Protein</span><span>Fat</span><span>Carbs</span></div>
   <ul class="list">{% include "partials/day_rows.html" %}</ul>
   {% else %}
   <p class="empty">No days logged yet.</p>

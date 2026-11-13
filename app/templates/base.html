@@ -2,6 +2,9 @@
 {% macro nav_item(name, href, label) -%}
 <a href="{{ href }}" class="nav-item"{% if nav == name %} aria-current="page"{% endif %}><span class="nav-icon">{{ icon(name) }}</span><span>{{ label }}</span></a>
 {%- endmacro %}
+{% macro side_item(name, href, label) -%}
+<a href="{{ href }}" class="side-link"{% if nav == name %} aria-current="page"{% endif %}>{{ icon(name) }}<span>{{ label }}</span></a>
+{%- endmacro %}
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -24,9 +27,21 @@
 </head>
 <body hx-boost="true">
   <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
-  <main class="page">{% block content %}{% endblock %}</main>
+  <main class="page{% block page_class %}{% endblock %}">{% block content %}{% endblock %}</main>
   {% block overlay %}{% endblock %}
   <div id="toast" class="toast-slot"></div>
+  {# Desktop (1100px and up): a sidebar takes the bottom nav's place, and holds the header menu's links too. #}
+  <nav class="side glass-strong desktop-only" aria-label="Main" x-data>
+    <a class="brand" href="/"><span class="brand-mark">{{ icon("history") }}</span>Macro Log</a>
+    {% block side_log_button %}<a href="/?log=1" class="btn accent log-cta">{{ icon("plus") }}Log food<kbd>N</kbd></a>{% endblock %}
+    {{ side_item("today", "/", "Today") }}
+    {{ side_item("history", "/history", "History") }}
+    {{ side_item("foods", "/settings/foods", "Foods") }}
+    {{ side_item("weight", "/weight", "Weight") }}
+    <span class="side-spacer"></span>
+    {{ side_item("export", "/export", "Export") }}
+    {{ side_item("settings", "/settings", "Settings") }}
+  </nav>
   <nav class="bottom-nav glass-strong" aria-label="Main" x-data>
     {{ nav_item("today", "/", "Today") }}
     {{ nav_item("history", "/history", "History") }}

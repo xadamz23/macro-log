@@ -31,11 +31,20 @@ Tailwind or build step, so a new class works as soon as it's in that file.
 - **Bottom nav** floats clear of the screen edges and is no wider than the page column. The + log button is a flat
   44px accent-outline ring (`.log-btn`), not `.accent`, so it doesn't read as a second current-page pill. Mark the current item with
   `aria-current="page"` (the `nav_item` macro in `base.html` does this); don't add an `active` class.
-- **Desktop dashboards (History, Weight):** at 1100px and up, `.dash` turns each page into a 12-column grid
-  (`grid-template-areas` in the "Desktop dashboards" block at the end of `app.css`). Phones must stay exactly as they
-  were: desktop-only markup gets `dash-only` (hidden below 1100px), phone-only markup gets `mobile-only`, and each
-  `.charts` card becomes `display: contents` on desktop so its `.chart-panel`s and range control are grid items. On
-  phones the panels are flattened back into the one glass card.
+- **Desktop (1100px and up) must not change phones.** Phones keep exactly the layout they have. Markup for desktop
+  only gets `desktop-only` (hidden below 1100px), markup for phones only gets `mobile-only`, and desktop layout rules
+  live inside `@media (min-width: 1100px)`. Before committing a desktop change, screenshot every page (and the open
+  log sheet) at 390px and 1000px on the old and new code and check they're identical.
+  - **Shell:** a fixed `.side` sidebar (in `base.html`) replaces the bottom nav and the header menu, which hide. Its
+    Log food button (`side_log_button` block) opens the sheet on the day page and links to `/?log=1` elsewhere. The
+    log sheet opens as a right-hand drawer; it stays closed until asked for. `app.js` adds desktop-only shortcuts: N
+    or / opens the sheet with the food search focused, ← / → step through days.
+  - **Day page:** a week strip (`partials/week_strip.html`, refreshed out of band after each write like the bars),
+    the macro bars four across, and entries as table columns (`.entry-cols` inside the row's button).
+  - **History, Weight:** `.dash` turns each page into a 12-column grid (`grid-template-areas` in the "Desktop
+    dashboards" block of `app.css`). Each `.charts` card becomes `display: contents` so its `.chart-panel`s and range
+    control are grid items; on phones the panels are flattened back into the one glass card.
+  - **Foods, Settings:** two columns (`page_class` block on `<main>`; Settings wraps its cards in `.settings-col`).
 - **Colors:** use the `:root` tokens. `--accent` is the light tint for text, lines and focus rings; the
   `--accent-from`/`--accent-to` gradient is only for filled controls. Macro colors (`--cal`, `--protein`, `--fat`,
   `--carbs`) are data colors: keep the accent visually distinct from them. `app.js` reads `--muted`, `--border`,

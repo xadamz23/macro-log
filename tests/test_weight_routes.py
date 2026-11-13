@@ -106,4 +106,4 @@ def test_weight_page_desktop_dashboard(client, db):
     assert "Est. maintenance" in r.text and "Weekly change" in r.text
     assert r.text.count('class="wkc-col"') == 12
     # Phones still get the first four weeks; the other eight are desktop-only rows.
-    assert r.text.count('<tr class="dash-only">') == 8
+    assert r.text.count('<tr class="desktop-only">') == 8

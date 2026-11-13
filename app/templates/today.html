@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}{{ day|day(today) }} · Macro Log{% endblock %}
+{% block page_class %} page-day{% endblock %}
 {% block content %}
 <header class="day-header day-header-switch">
   <span aria-hidden="true"></span>
@@ -16,12 +17,18 @@
     {% endif %}
   </div>
   {% include "partials/header_menu.html" %}
+  <span class="day-keys desktop-only" aria-hidden="true"><kbd>←</kbd><kbd>→</kbd> change day</span>
 </header>
 {% if is_today and not weighed_today %}
 <a class="nudge glass" href="/weight"><span>No weigh-in yet today</span><strong>Log weight</strong></a>
 {% endif %}
+{% include "partials/week_strip.html" %}
 {% include "partials/macro_bars.html" %}
 {% include "partials/entry_list.html" %}
+{% endblock %}
+
+{% block side_log_button %}
+<button type="button" class="btn accent log-cta" @click="$dispatch('open-log')">{{ icon("plus") }}Log food<kbd>N</kbd></button>
 {% endblock %}
 
 {% block log_button %}

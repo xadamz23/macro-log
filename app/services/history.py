@@ -179,3 +179,43 @@ def dashboard(db: Session, today: date) -> Dashboard:
         streak=streak,
         heat=heat,
     )
+
+
+@dataclass(frozen=True)
+class WeekDay:
+    day: date
+    calories: int | None
+    target: int | None
+    selected: bool
+    future: bool
+
+    @property
+    def pct(self) -> float:
+        if not self.calories or not self.target:
+            return 0.0
+        return min(self.calories / self.target * 100, 100.0)
+
+    @property
+    def over(self) -> bool:
+        return bool(self.calories and self.target) and _level(self.calories, self.target) == "over"
+
+
+def week_of(db: Session, day: date, today: date) -> list[WeekDay]:
+    """Monday to Sunday of the week holding `day`, for the desktop week strip on the day page."""
+    monday = day - timedelta(days=day.weekday())
+    totals = day_totals_between(db, monday, monday + timedelta(days=6))
+    resolve = targets_resolver(db)
+    week = []
+    for offset in range(7):
+        d = monday + timedelta(days=offset)
+        target = resolve(d)
+        week.append(
+            WeekDay(
+                day=d,
+                calories=totals[d].calories if d in totals else None,
+                target=target.calories if target else None,
+                selected=d == day,
+                future=d > today,
+            )
+        )
+    return week

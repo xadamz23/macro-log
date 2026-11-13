@@ -656,11 +656,11 @@ textarea { resize: vertical; }
 }
 
 /* ===== Desktop dashboards (History, Weight) =====
-   Phones keep the single column. At 1100px and up, .dash becomes a 12-column grid: .dash-only pieces (summary
+   Phones keep the single column. At 1100px and up, .dash becomes a 12-column grid: .desktop-only pieces (summary
    tiles, side cards) show, .mobile-only ones hide, and each charts card (.charts) dissolves with display: contents
    so its chart panels and range control become grid items of their own. */
 @media (max-width: 1099.98px) {
-  .dash-only { display: none !important; }
+  .desktop-only { display: none !important; }
   /* On phones the charts card is the glass; its panels are plain wrappers (and an inner blur would stack). */
   .chart-panel { padding: 0; margin: 0; border: 0; border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; }
 }
@@ -722,8 +722,8 @@ textarea { resize: vertical; }
   .dash:has(.chart-panel) :is(.charts, #weight-body) { display: contents; }
   .dash:has(.chart-panel) .day-header { grid-area: head; margin: 0 0 4px; }
   .dash:has(.chart-panel) h1 { font-size: 1.75rem; }
-  /* The range control sits in the header row, left of the menu button. */
-  .dash:has(.chart-panel) .charts > .segmented { grid-area: head; justify-self: end; align-self: center; margin: 0 52px 0 0; }
+  /* The range control sits at the right end of the header row (the menu button is hidden on desktop). */
+  .dash:has(.chart-panel) .charts > .segmented { grid-area: head; justify-self: end; align-self: center; margin: 0; }
   .dash .kpi, .dash #weigh-card { align-self: stretch; }
   .kpi-1 { grid-area: k1; } .kpi-2 { grid-area: k2; } .kpi-3 { grid-area: k3; } .kpi-4 { grid-area: k4; }
   .chart-panel .chart-box { height: 300px; margin-bottom: 0; }
@@ -765,4 +765,128 @@ textarea { resize: vertical; }
   .dash-weeks { grid-area: weeks; }
   .dash-weighins { grid-area: list; }
   .dash-weighins .entry-list { max-height: 480px; overflow-y: auto; margin: 0 -20px; padding: 0 20px; scrollbar-width: thin; }
+}
+
+/* ===== Desktop shell (1100px and up): sidebar, log drawer, Today, Foods, Settings =====
+   Same tokens, glass and type as phones; only the arrangement changes. Everything here either styles .desktop-only
+   markup (hidden on phones) or sits inside the media query below. */
+kbd {
+  display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px;
+  border-radius: 5px; border: 1px solid rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.05);
+  font: 600 0.72rem/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--muted);
+}
+
+/* Sidebar: the bottom nav's items and the header menu's links, stood up on the left edge. */
+.side {
+  position: fixed; top: 0; bottom: 0; left: 0; z-index: 20;
+  width: var(--side-w, 232px);
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 20px 14px;
+  border-width: 0 1px 0 0; border-radius: 0;
+}
+.brand { display: flex; align-items: center; gap: 10px; padding: 4px 10px 20px; color: var(--text); text-decoration: none; font-weight: 750; font-size: 1.05rem; letter-spacing: -0.01em; }
+.brand-mark {
+  width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px;
+  background: linear-gradient(135deg, var(--accent-from), var(--accent-to));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 4px 14px var(--accent-glow);
+}
+.brand-mark svg { width: 17px; height: 17px; color: #fff; }
+.log-cta { margin: 0 0 14px; min-height: 44px; border-radius: 12px; }
+.log-cta svg { width: 18px; height: 18px; }
+.log-cta kbd { margin-left: 6px; color: rgba(255, 255, 255, 0.85); border-color: rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.1); }
+.side-link {
+  display: flex; align-items: center; gap: 12px;
+  min-height: 42px; padding: 0 12px;
+  border: 1px solid transparent; border-radius: 12px;
+  color: var(--muted); text-decoration: none; font-weight: 600; font-size: 0.95rem;
+  transition: background 0.15s, color 0.15s;
+}
+.side-link svg { width: 20px; height: 20px; flex-shrink: 0; }
+.side-link:hover { background: var(--hover); color: var(--text); }
+.side-link:focus-visible, .brand:focus-visible, .wk-day:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.side-link[aria-current="page"] {
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+.side-link[aria-current="page"] svg { color: var(--accent); }
+.side-spacer { flex: 1; border-bottom: 1px solid var(--border); margin: 0 6px 8px; }
+
+/* Week strip on the day page */
+.week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+.wk-day { display: grid; gap: 6px; padding: 10px 12px 12px; border-radius: 14px; color: var(--text); text-decoration: none; transition: border-color 0.15s; }
+.wk-day:hover { border-color: rgba(255, 255, 255, 0.22); }
+.wk-day[aria-current="date"] { border-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+.wk-day.is-future { opacity: 0.45; }
+.wk-top { display: flex; justify-content: space-between; align-items: baseline; }
+.wk-dow { font-size: 0.78rem; font-weight: 600; color: var(--muted); }
+.wk-num { font-weight: 700; font-variant-numeric: tabular-nums; }
+.wk-day .bar-track { display: block; height: 5px; }
+.wk-day .bar-fill { display: block; }
+.wk-kcal { font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.wk-day.over .wk-kcal { color: var(--over); }
+.day-keys { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); }
+
+@media (min-width: 1100px) {
+  :root { --side-w: 232px; }
+  body { padding-left: var(--side-w); }
+  .bottom-nav, .menu-wrap { display: none; }
+  .page { padding-bottom: 48px; }
+  .toast-slot { left: calc(var(--side-w) + 16px); bottom: 24px; }
+
+  /* The log sheet opens as a drawer on the right instead of rising from the bottom. */
+  .sheet {
+    top: 0; bottom: 0; left: auto; right: 0;
+    width: 420px; max-height: none; transform: none;
+    border-width: 0 0 0 1px; border-radius: 0;
+    padding: 20px 22px 32px;
+  }
+  .sheet-handle { display: none; }
+
+  /* Day page */
+  .page-day { max-width: 980px; padding-top: 28px; }
+  .page-day .day-header-switch { display: flex; justify-content: space-between; margin-bottom: 18px; }
+  .page-day .day-header-switch > span:first-child { display: none; }
+  .page-day .day-switch { justify-content: flex-start; gap: 6px; }
+  .page-day .day-title { font-size: 1.75rem; }
+  .page-day #bars { grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 24px; padding: 20px; }
+  .page-day #bars > .hint { grid-column: 1 / -1; }
+  .page-day #bars .bar-head { flex-direction: column; align-items: flex-start; gap: 2px; margin-bottom: 10px; }
+  .page-day #bars .bar-label { font-size: 0.85rem; color: var(--muted); }
+  .page-day #bars .bar-value { white-space: nowrap; }
+  .page-day #bars .bar-value strong { font-size: 1.5rem; font-weight: 750; letter-spacing: -0.02em; }
+  .page-day #bars .bar-calories .bar-value strong { color: var(--cal); }
+
+  /* Entries as a table: time | food | kcal | protein | fat | carbs | edit. The row is time + the edit button,
+     and the button is its own grid with the same columns, so the cells line up with the head and total rows. */
+  .page-day .entries { padding: 20px; }
+  .entries-head, .entries-total { display: grid; grid-template-columns: 84px minmax(0, 1fr) repeat(4, 76px) 44px; gap: 0 12px; padding: 0 8px; font-variant-numeric: tabular-nums; }
+  .entries-head { padding-bottom: 8px; font-size: 0.78rem; font-weight: 600; color: var(--muted); }
+  .entries-total { padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.18); font-weight: 700; }
+  .entries-head > :nth-child(n+3), .entries-total > :nth-child(n+3), .entry-cols > span { text-align: right; }
+  #entries .entry-row:has(> .entry-main) { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 0 12px; padding: 0 8px; border-radius: 10px; transition: background 0.15s; }
+  #entries .entry-row:has(> .entry-main):hover { background: var(--hover); }
+  #entries .entry-time { order: -1; }
+  #entries .entry-main { grid-template-columns: minmax(0, 1fr) repeat(4, 76px) 44px; gap: 0 12px; align-items: center; font-variant-numeric: tabular-nums; }
+  #entries .entry-main::after { content: "Edit"; text-align: right; font-size: 0.85rem; font-weight: 600; color: var(--accent); opacity: 0; transition: opacity 0.15s; }
+  #entries .entry-row:hover .entry-main::after, #entries .entry-main:focus-visible::after { opacity: 1; }
+  .entry-cols { display: contents; }
+  .ec-kcal { color: var(--cal); font-weight: 600; }
+  #entries .entry-edit { padding: 12px 0; }
+
+  /* Foods: the add form beside the list. */
+  .page-foods { max-width: 1100px; padding-top: 28px; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px; align-items: start; }
+  .page-foods > .day-header { grid-column: 1 / -1; margin-bottom: 4px; }
+  .page-foods > .card { margin-bottom: 0; }
+  .page-foods #food-add { position: sticky; top: 24px; }
+
+  /* Settings: targets on the left, everything else on the right. */
+  .page-settings { max-width: 1100px; padding-top: 28px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+  .page-settings > .day-header { grid-column: 1 / -1; margin-bottom: 4px; }
+  .settings-col { display: grid; gap: 16px; }
+  .settings-col > .card { margin-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .side-link, .wk-day, #entries .entry-row, #entries .entry-main::after { transition: none; }
+  }
 }

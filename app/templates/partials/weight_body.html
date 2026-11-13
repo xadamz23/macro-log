@@ -4,13 +4,13 @@
   {% if trend is none %}
   <p class="hint weigh-hint">Weigh yourself each morning after waking, before eating or drinking. Your trend and estimated maintenance calories build up from there.</p>
   {% else %}
-  <section class="card glass kpi dash-only kpi-2">
+  <section class="card glass kpi desktop-only kpi-2">
     <div class="kpi-label">Trend</div>
     <div class="kpi-value">{{ trend|num }} <small>lb</small></div>
     {% if first and first.day != today %}<div class="kpi-sub"><strong>{{ (trend - first.trend)|signed }} lb</strong> since {{ first.day.strftime("%b %d, %Y").replace(" 0", " ") }}</div>{% endif %}
     {{ sparkline(trend_spark, "--accent") }}
   </section>
-  <section class="card glass kpi dash-only kpi-3">
+  <section class="card glass kpi desktop-only kpi-3">
     <div class="kpi-label">Rate</div>
     {% if bal.rate is not none %}
     <div class="kpi-value kpi-accent">{{ bal.rate|signed(2) }} <small>lb/wk</small></div>
@@ -20,7 +20,7 @@
     <div class="kpi-sub">rate after {{ min_days }} days</div>
     {% endif %}
   </section>
-  <section class="card glass kpi dash-only kpi-4">
+  <section class="card glass kpi desktop-only kpi-4">
     <div class="kpi-label">Est. maintenance</div>
     {% if bal.ready %}
     <div class="kpi-value">{{ "{:,}".format(bal.maintenance) }} <small>kcal</small></div>
@@ -51,7 +51,7 @@
       {% endfor %}
     </div>
     <div class="card glass chart-panel panel-trend">
-      <h2 class="dash-only">Weight trend</h2>
+      <h2 class="desktop-only">Weight trend</h2>
       <div class="chart-box"><canvas x-ref="chart" aria-label="Daily weight and trend" role="img"></canvas></div>
     </div>
   </section>
@@ -77,7 +77,7 @@
 
   {% set changes = weeks|map(attribute="trend_change")|reject("none")|map("abs")|list %}
   {% set scale = [changes|max if changes else 0, 0.5]|max %}
-  <section class="card glass dash-only dash-wkchange">
+  <section class="card glass desktop-only dash-wkchange">
     <div class="card-head"><h2>Weekly change</h2><span class="kpi-sub">trend, lb</span></div>
     <div class="wkc" role="img" aria-label="Trend change per week, oldest to newest">
       {% for w in weeks|reverse %}
@@ -95,14 +95,14 @@
   <section class="card glass dash-weeks">
     <h2>By week</h2>
     <table class="weeks">
-      <thead><tr><th>Week of</th><th>Avg kcal</th><th>Protein</th><th class="dash-only">Weigh-ins</th><th>Trend</th></tr></thead>
+      <thead><tr><th>Week of</th><th>Avg kcal</th><th>Protein</th><th class="desktop-only">Weigh-ins</th><th>Trend</th></tr></thead>
       <tbody>
         {% for w in weeks %}
-        <tr{% if loop.index > 4 %} class="dash-only"{% endif %}>
+        <tr{% if loop.index > 4 %} class="desktop-only"{% endif %}>
           <td>{{ w.start.strftime("%b %d").replace(" 0", " ") }}</td>
           <td>{{ w.avg_calories if w.avg_calories is not none else "–" }}</td>
           <td>{% if w.avg_protein is not none %}{{ w.avg_protein|num }} g{% else %}–{% endif %}</td>
-          <td class="dash-only">{{ w.weigh_ins }}/7</td>
+          <td class="desktop-only">{{ w.weigh_ins }}/7</td>
           <td{% if w.trend_change is not none and w.trend_change|round(1) != 0 %} class="{{ 'down' if w.trend_change < 0 else 'up' }}"{% endif %}>{{ w.trend_change|signed }}</td>
         </tr>
         {% endfor %}

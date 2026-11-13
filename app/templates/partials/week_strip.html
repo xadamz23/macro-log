@@ -1,0 +1,18 @@
+{# Desktop only: the selected day's week, Monday to Sunday, each with its calories against target. #}
+<nav id="week-strip" class="week desktop-only" aria-label="This week"{% if oob %} hx-swap-oob="true"{% endif %}>
+  {% for d in week %}
+  {% if d.future %}
+  <span class="wk-day glass is-future" aria-hidden="true">
+    <span class="wk-top"><span class="wk-dow">{{ d.day.strftime("%a") }}</span><span class="wk-num">{{ d.day.day }}</span></span>
+    <span class="bar-track"></span><span class="wk-kcal">&nbsp;</span>
+  </span>
+  {% else %}
+  <a class="wk-day glass bar-calories{% if d.over %} over{% endif %}" href="{{ '/' if d.day == today else '/day/' ~ d.day.isoformat() }}"
+     {% if d.selected %}aria-current="date"{% endif %} aria-label="{{ d.day|day(today) }}: {{ d.calories if d.calories is not none else 'nothing logged' }}{% if d.calories is not none %} kcal{% endif %}">
+    <span class="wk-top"><span class="wk-dow">{{ d.day.strftime("%a") }}</span><span class="wk-num">{{ d.day.day }}</span></span>
+    <span class="bar-track"><span class="bar-fill" style="width: {{ d.pct }}%"></span></span>
+    <span class="wk-kcal">{{ "{:,} kcal".format(d.calories) if d.calories is not none else "–" }}</span>
+  </a>
+  {% endif %}
+  {% endfor %}
+</nav>

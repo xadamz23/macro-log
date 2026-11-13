@@ -94,3 +94,19 @@ def test_dashboard_without_targets(db):
     create_entry(db, day=date(2026, 10, 12), macros=Macros(1800))
     dash = dashboard(db, TODAY)
     assert (dash.on_target, dash.with_target, dash.streak) == (0, 0, 0)
+
+
+def test_week_of_runs_monday_to_sunday(db):
+    from datetime import timedelta
+
+    from app.services.history import week_of
+
+    set_targets(db, date(2026, 9, 1), Macros(2000, 150, 70, 200))
+    create_entry(db, day=TODAY, macros=Macros(2500))  # TODAY is a Tuesday
+    week = week_of(db, TODAY, TODAY)
+    assert [d.day.weekday() for d in week] == list(range(7))
+    tue = week[1]
+    assert (tue.day, tue.calories, tue.target, tue.selected, tue.over, tue.pct) == (TODAY, 2500, 2000, True, True, 100.0)
+    assert week[0].calories is None and not week[0].future
+    assert all(d.future for d in week[2:])
+    assert week_of(db, TODAY - timedelta(days=7), TODAY)[1].future is False

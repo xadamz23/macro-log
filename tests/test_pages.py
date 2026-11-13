@@ -89,3 +89,25 @@ def test_today_nudges_until_weighed(client, db):
     assert "No weigh-in yet today" not in client.get("/day/2026-10-10").text
     save_weigh_in(db, TODAY, 180)
     assert "No weigh-in yet today" not in client.get("/").text
+
+
+def test_desktop_sidebar_marks_current_page(client):
+    r = client.get("/weight")
+    assert 'class="side glass-strong desktop-only"' in r.text
+    assert '<a href="/weight" class="side-link" aria-current="page">' in r.text
+    assert 'href="/?log=1" class="btn accent log-cta"' in r.text
+    # On Today the sidebar button opens the sheet in place instead.
+    assert "$dispatch('open-log')\">" in client.get("/").text.split('class="btn accent log-cta"')[1][:40]
+
+
+def test_day_page_week_strip_and_entry_totals(client, db):
+    from datetime import timedelta
+
+    set_targets(db, TODAY - timedelta(days=30), Macros(2000, 150, 70, 200))
+    create_entry(db, day=TODAY, macros=Macros(500, 40, 10, 50), name="Oats")
+    create_entry(db, day=TODAY, macros=Macros(1200, 60, 30, 100), name="Lunch")
+    r = client.get("/")
+    assert 'id="week-strip"' in r.text
+    assert r.text.count('class="wk-day') == 7
+    assert 'aria-current="date"' in r.text
+    assert '<span class="ec-kcal">1,700</span>' in r.text  # desktop total row

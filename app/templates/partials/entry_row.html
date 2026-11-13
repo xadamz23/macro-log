@@ -1,7 +1,9 @@
 <li id="entry-{{ entry.id }}" class="entry-row">
   <button type="button" class="entry-main" hx-get="/entries/{{ entry.id }}/edit" hx-target="#entry-{{ entry.id }}" hx-swap="outerHTML">
     <span class="entry-name">{{ entry.name or "Quick add" }}{% if entry.servings != 1 %} <span class="glass-chip">×{{ entry.servings|num }}</span>{% endif %}</span>
-    <span class="entry-macros">{{ entry.calories }} kcal · P {{ entry.protein|num }} · F {{ entry.fat|num }} · C {{ entry.carbs|num }}</span>
+    <span class="entry-macros mobile-only">{{ entry.calories }} kcal · P {{ entry.protein|num }} · F {{ entry.fat|num }} · C {{ entry.carbs|num }}</span>
+    {# Desktop: the same numbers as table columns. #}
+    <span class="entry-cols desktop-only"><span class="ec-kcal">{{ "{:,}".format(entry.calories) }}</span><span>{{ entry.protein|num }} g</span><span>{{ entry.fat|num }} g</span><span>{{ entry.carbs|num }} g</span></span>
   </button>
   <span class="entry-time">{{ entry.logged_at|time(tz) }}</span>
 </li>

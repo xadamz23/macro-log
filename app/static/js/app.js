@@ -47,6 +47,31 @@ function jumpToDay(value, today) {
   window.location.assign(value >= today ? "/" : `/day/${value}`);
 }
 
+// Desktop shortcuts (the same width as the sidebar layout): N or / opens the log sheet with the food search focused
+// (from another page, N goes to Today with it open), and ← / → step through days on the day page.
+const desktop = window.matchMedia("(min-width: 1100px)");
+document.addEventListener("keydown", (event) => {
+  if (!desktop.matches || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+  if (event.target.closest("input, textarea, select, [contenteditable]")) return;
+  const sheet = document.querySelector(".sheet");
+  const sheetOpen = sheet && getComputedStyle(sheet).display !== "none";
+  if (event.key === "n" || event.key === "/") {
+    if (!sheet) {
+      if (event.key === "n") window.location.assign("/?log=1");
+      return;
+    }
+    event.preventDefault();
+    if (!sheetOpen) window.dispatchEvent(new CustomEvent("open-log"));
+    setTimeout(() => (sheet.querySelector(".food-search") || sheet.querySelector("#entry-name"))?.focus(), 0);
+  } else if ((event.key === "ArrowLeft" || event.key === "ArrowRight") && !sheetOpen) {
+    const link = document.querySelector(`a.day-nav[aria-label="${event.key === "ArrowLeft" ? "Previous" : "Next"} day"]`);
+    if (link) {
+      event.preventDefault();
+      link.click();
+    }
+  }
+});
+
 document.addEventListener("alpine:init", () => {
   // Calories follow 4P + 4C + 9F until the user types their own number.
   Alpine.data("macroForm", () => ({

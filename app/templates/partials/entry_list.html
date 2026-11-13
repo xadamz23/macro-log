@@ -1,9 +1,14 @@
 <section id="entries" class="card glass entries"{% if oob %} hx-swap-oob="true"{% endif %}>
   <h2>Entries</h2>
   {% if entries %}
+  <div class="entries-head desktop-only" aria-hidden="true"><span>Time</span><span>Food</span><span>kcal</span><span>Protein</span><span>Fat</span><span>Carbs</span></div>
   <ul class="entry-list">
     {% for entry in entries %}{% include "partials/entry_row.html" %}{% endfor %}
   </ul>
+  <div class="entries-total desktop-only">
+    <span></span><span>Total</span><span class="ec-kcal">{{ "{:,}".format(entries|sum(attribute="calories")) }}</span>
+    {% for key in ["protein", "fat", "carbs"] %}<span>{{ entries|sum(attribute=key)|num }} g</span>{% endfor %}
+  </div>
   {% else %}
   <p class="empty">Nothing logged yet.</p>
   {% endif %}
