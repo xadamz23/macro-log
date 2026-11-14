@@ -5,7 +5,7 @@
   {% if errors.form %}<p class="error">{{ errors.form }}</p>{% endif %}
   <div class="field{% if errors.name %} invalid{% endif %}">
     <label for="{{ prefix }}-name">Name</label>
-    <input class="glass-input" id="{{ prefix }}-name" type="text" name="name" maxlength="100" value="{{ values.get('name', '') }}">
+    <input class="glass-input" id="{{ prefix }}-name" type="text" name="name" maxlength="100" autocomplete="off" data-1p-ignore value="{{ values.get('name', '') }}">
     {% if errors.name %}<span class="error">{{ errors.name }}</span>{% endif %}
   </div>
   {% include "partials/macro_fields.html" %}
