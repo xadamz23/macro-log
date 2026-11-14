@@ -12,7 +12,7 @@ migrate:
 revision:
 	uv run alembic revision --autogenerate -m "$(m)"
 
-.PHONY: build up down deploy
+.PHONY: build up down
 
 build:
 	docker build -t macro-log:local .
@@ -22,6 +22,3 @@ up:
 
 down:
 	docker compose -f compose.yaml -f compose.build.yaml down
-
-deploy:
-	./scripts/deploy.sh

@@ -32,9 +32,7 @@ make down
 
 ## Deploy (build amd64 here, run on the amd64 host)
 
-Migrations run on container start with either method.
-
-### Tagged release (current)
+Migrations run on container start.
 
 ```bash
 ./deploy.sh              # patch bump of the newest remote tag, e.g. 1.1.25 -> 1.1.26
@@ -71,24 +69,13 @@ internal `macrolog-internal` network. Point the tunnel's public hostname at `htt
 Edit `update-app.sh` in the repo, then copy it to the host again: the host runs its own copy. It generates the compose
 file itself, so `compose.yaml` in the repo isn't used on the host.
 
-### Registry `latest` (alternative)
-
-1. `docker login <registry>` once.
-2. `make deploy` builds `linux/amd64` and pushes `$REGISTRY/macro-log:<git-sha>` and `:latest`.
-3. On the prod host, with `compose.yaml` and a filled-in `.env` next to it, run
-   `docker compose pull && docker compose up -d`.
-
 ## Cloudflare
 
 Put the hostname behind a Cloudflare Access application. Set `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` so the app
 rejects any request that didn't pass through Access. `/healthz` stays open for health checks.
 
-How much those variables matter depends on the deploy method:
-
-- **Tagged release:** the generated compose file publishes no ports; only `cloudflared` on the `cf-tunnel` network
-  can reach the app. The variables are recommended as defence in depth.
-- **Registry `latest`:** `compose.yaml` publishes the port on `127.0.0.1` only (`APP_BIND`), with `cloudflared` on the
-  same host. The variables are recommended, and become required if you publish the port beyond localhost.
+The generated compose file publishes no ports, so only `cloudflared` on the `cf-tunnel` network can reach the app.
+The variables are recommended as defence in depth.
 
 ## Tailscale
 
