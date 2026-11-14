@@ -19,7 +19,6 @@
   {% include "partials/header_menu.html" %}
   {# Desktop: the arrows move out of the title into a pill on the right, where History puts its range control. #}
   <div class="day-tools desktop-only">
-    <span class="day-keys" aria-hidden="true"><kbd>←</kbd><kbd>→</kbd></span>
     <nav class="segmented glass day-step" aria-label="Change day">
       <a href="/day/{{ prev_day.isoformat() }}" aria-label="Previous day">‹</a>
       <a href="/"{% if is_today %} class="accent" aria-current="date"{% endif %}>Today</a>
