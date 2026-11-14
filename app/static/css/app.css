@@ -663,6 +663,9 @@ textarea { resize: vertical; }
   .desktop-only { display: none !important; }
   /* On phones the charts card is the glass; its panels are plain wrappers (and an inner blur would stack). */
   .chart-panel { padding: 0; margin: 0; border: 0; border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; }
+  /* The range pill spans the card like the charts under it, its options sharing the width equally. */
+  .charts > .segmented { width: 100%; }
+  .charts > .segmented button { flex: 1 1 0; }
 }
 
 .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 12px; }
