@@ -37,10 +37,14 @@ Migrations run on container start with either method.
 ### Tagged release (current)
 
 ```bash
-scripts/deploy-macrolog-from-arm64.sh v1.2.0
+./deploy.sh              # patch bump of the newest remote tag, e.g. 1.1.25 -> 1.1.26
+./deploy.sh --minor      # 1.2.0  (--major: 2.0.0)
+./deploy.sh 1.3.0        # explicit tag
 ```
 
-This runs four steps:
+It reads the newest `X.Y.Z` tag from `origin` with `git ls-remote` (so local tags don't need fetching), shows the
+new tag and asks for confirmation. It refuses a tag that already exists or is older than the latest. Then it runs four
+steps:
 
 1. Creates an annotated git tag and pushes it to `origin`.
 2. Builds a `linux/amd64` image `docker.io/xadamz23/macro-log:<tag>`.
