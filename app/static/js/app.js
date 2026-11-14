@@ -54,8 +54,8 @@ document.addEventListener("keydown", (event) => {
   if (!desktop.matches || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
   if (event.target.closest("input, textarea, select, [contenteditable]")) return;
   // Not display: a drawer stays shown while it slides away.
-  if (document.getElementById("edit-sheet")?.inert === false) return;
-  const sheet = document.querySelector(".sheet:not(#edit-sheet)");
+  if (document.querySelector(".sheet[data-sheet=edit]")?.inert === false) return;
+  const sheet = document.querySelector(".sheet:not([data-sheet=edit])");
   const sheetOpen = sheet && !sheet.inert;
   if (event.key === "n" || event.key === "/") {
     if (!sheet) {

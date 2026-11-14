@@ -46,7 +46,7 @@ Tailwind or build step, so a new class works as soon as it's in that file.
     rendered next to the phone-only `#bars` in `macro_bars.html`; both refresh out of band after each write), and
     entries as table columns (`.entry-cols` inside the row's button), each with a share-of-target bar sized from
     `--kcal` on the row and `--kcal-target` on `#entries`. Clicking an entry opens its edit form in a second drawer
-    (`#edit-sheet` in `today.html`, same slide) rather than in the row: `app.js` adds `sheet=1` to the edit request
+    (`.sheet[data-sheet=edit]` in `today.html`, same slide; no id, or htmx's settle step after a boosted day change resets its `display: none` and it shows) rather than in the row: `app.js` adds `sheet=1` to the edit request
     on desktop and the server retargets the form there. Phones still edit in the row.
   - **History, Weight:** `.dash` turns each page into a 12-column grid (`grid-template-areas` in the "Desktop
     dashboards" block of `app.css`). Each `.charts` card becomes `display: contents` so its `.chart-panel`s and range

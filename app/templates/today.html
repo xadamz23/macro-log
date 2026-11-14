@@ -68,7 +68,9 @@
    sheet=1). Phones edit in the row instead and never show this. #}
 <div class="desktop-only" x-data="editSheet" @open-edit.window="show()" @close-edit.window="hide()" @keydown.escape.window="hide()">
   <div class="sheet-backdrop" x-show="open" x-transition.opacity x-cloak @click="hide()"></div>
-  <div id="edit-sheet" class="sheet glass-strong" x-ref="sheet" role="dialog" aria-modal="true" aria-label="Edit entry" x-show="open" x-cloak :inert="!open"
+  {# No id: htmx's settle step copies attributes across a boosted page swap by id, and that wiped the display: none
+     x-show had set, leaving the drawer open on every day change. #}
+  <div class="sheet glass-strong" data-sheet="edit" x-ref="sheet" role="dialog" aria-modal="true" aria-label="Edit entry" x-show="open" x-cloak :inert="!open"
        x-transition:enter="sheet-anim" x-transition:enter-start="sheet-off"
        x-transition:leave="sheet-anim" x-transition:leave-end="sheet-off">
     <div class="sheet-head">
