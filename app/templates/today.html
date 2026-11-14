@@ -64,4 +64,18 @@
     <div id="log-sheet-body">{% include "partials/log_sheet.html" %}</div>
   </div>
 </div>
+{# Desktop: tapping a logged entry opens its edit form in a drawer like the log sheet (app.js asks for it with
+   sheet=1). Phones edit in the row instead and never show this. #}
+<div class="desktop-only" x-data="editSheet" @open-edit.window="show()" @close-edit.window="hide()" @keydown.escape.window="hide()">
+  <div class="sheet-backdrop" x-show="open" x-transition.opacity x-cloak @click="hide()"></div>
+  <div id="edit-sheet" class="sheet glass-strong" x-ref="sheet" role="dialog" aria-modal="true" aria-label="Edit entry" x-show="open" x-cloak :inert="!open"
+       x-transition:enter="sheet-anim" x-transition:enter-start="sheet-off"
+       x-transition:leave="sheet-anim" x-transition:leave-end="sheet-off">
+    <div class="sheet-head">
+      <h2>Edit entry</h2>
+      <button type="button" class="icon-btn btn-glass" @click="hide()" aria-label="Close">✕</button>
+    </div>
+    <div id="edit-sheet-body"></div>
+  </div>
+</div>
 {% endblock %}

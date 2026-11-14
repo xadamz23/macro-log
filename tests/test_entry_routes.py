@@ -135,6 +135,18 @@ def test_edit_update_delete_entry(client, db):
     assert list_entries(db, TODAY) == []
 
 
+def test_desktop_edit_opens_in_the_edit_sheet(client, db):
+    entry = create_entry(db, day=TODAY, macros=Macros(100, 5, 5, 5), name="Snack")
+    edit = client.get(f"/entries/{entry.id}/edit?sheet=1")
+    assert edit.status_code == 200 and "<li" not in edit.text
+    assert 'name="sheet" value="1"' in edit.text and 'id="edit-sheet-' in edit.text
+    assert edit.headers["HX-Retarget"] == "#edit-sheet-body" and edit.headers["HX-Trigger-After-Swap"] == "open-edit"
+
+    bad = client.put(f"/entries/{entry.id}", data={"sheet": "1", "protein": "x"})
+    assert bad.status_code == 422 and "<li" not in bad.text
+    assert bad.headers["HX-Retarget"] == "#edit-sheet-body"
+
+
 def test_today_page_has_sheet(client):
     r = client.get("/?log=1")
     assert 'x-data="logSheet(true)"' in r.text

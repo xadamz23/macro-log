@@ -170,10 +170,19 @@ async def hide_recent_food_route(request: Request, db: DB, today: Today):
     return templates.TemplateResponse(request, "partials/recent_foods.html", context)
 
 
+# On desktop (sheet=1, added by app.js) the edit form opens in the edit drawer instead of replacing the row.
+EDIT_SHEET_HEADERS = {"HX-Retarget": "#edit-sheet-body", "HX-Reswap": "innerHTML"}
+
+
 @router.get("/entries/{entry_id}/edit", response_class=HTMLResponse)
-def edit_entry_form(entry_id: int, request: Request, db: DB):
+def edit_entry_form(entry_id: int, request: Request, db: DB, sheet: bool = False):
     entry = _entry_or_404(db, entry_id)
     context = {"entry": entry, "values": {**form_values(entry.macros), "name": entry.name or ""}, "errors": {}}
+    if sheet:
+        return templates.TemplateResponse(
+            request, "partials/entry_edit_form.html", {**context, "in_sheet": True},
+            headers={**EDIT_SHEET_HEADERS, "HX-Trigger-After-Swap": "open-edit"},
+        )
     return templates.TemplateResponse(request, "partials/entry_edit.html", context)
 
 
@@ -194,6 +203,11 @@ async def update_entry_route(entry_id: int, request: Request, db: DB, tz: TZ, to
         errors["name"] = name_error
     if errors:
         context = {"entry": entry, "values": {**form.values, "name": name}, "errors": errors}
+        if data.get("sheet"):
+            return templates.TemplateResponse(
+                request, "partials/entry_edit_form.html", {**context, "in_sheet": True}, status_code=422,
+                headers=EDIT_SHEET_HEADERS,
+            )
         return templates.TemplateResponse(
             request, "partials/entry_edit.html", context, status_code=422,
             headers={"HX-Retarget": f"#entry-{entry.id}", "HX-Reswap": "outerHTML"},

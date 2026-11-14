@@ -53,8 +53,9 @@ const desktop = window.matchMedia("(min-width: 1100px)");
 document.addEventListener("keydown", (event) => {
   if (!desktop.matches || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
   if (event.target.closest("input, textarea, select, [contenteditable]")) return;
-  const sheet = document.querySelector(".sheet");
-  // Not display: the drawer stays shown while it slides away.
+  // Not display: a drawer stays shown while it slides away.
+  if (document.getElementById("edit-sheet")?.inert === false) return;
+  const sheet = document.querySelector(".sheet:not(#edit-sheet)");
   const sheetOpen = sheet && !sheet.inert;
   if (event.key === "n" || event.key === "/") {
     if (!sheet) {
@@ -70,6 +71,13 @@ document.addEventListener("keydown", (event) => {
       event.preventDefault();
       link.click();
     }
+  }
+});
+
+// Desktop: a logged entry's edit form opens in the edit drawer (today.html) rather than in its row.
+document.addEventListener("htmx:configRequest", (event) => {
+  if (desktop.matches && event.detail.verb === "get" && /^\/entries\/\d+\/edit$/.test(event.detail.path)) {
+    event.detail.parameters.sheet = "1";
   }
 });
 
@@ -335,6 +343,27 @@ document.addEventListener("alpine:init", () => {
       // x-show only hides the sheet, so it would reopen where it was last scrolled.
       this.$nextTick(() => {
         this.$refs.sheet.scrollTop = 0;
+      });
+    },
+    hide() {
+      this.open = false;
+    },
+  }));
+
+  // Desktop edit drawer: the form arrives by htmx (HX-Trigger-After-Swap: open-edit); a save or delete closes it.
+  Alpine.data("editSheet", () => ({
+    open: false,
+    init() {
+      this.$refs.sheet.addEventListener("htmx:afterRequest", (event) => {
+        const { verb } = event.detail.requestConfig;
+        if ((verb === "put" || verb === "delete") && event.detail.xhr.status < 300) this.hide();
+      });
+    },
+    show() {
+      this.open = true;
+      this.$nextTick(() => {
+        this.$refs.sheet.scrollTop = 0;
+        this.$refs.sheet.querySelector("input:not([type=hidden])")?.focus({ preventScroll: true });
       });
     },
     hide() {

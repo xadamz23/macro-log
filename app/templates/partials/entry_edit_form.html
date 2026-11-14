@@ -1,0 +1,21 @@
+{# The entry edit form: inline in the row on phones (entry_edit.html), in the edit drawer on desktop (in_sheet). #}
+{% set prefix = ("edit-sheet-" if in_sheet else "edit-") ~ entry.id %}
+<form class="entry-edit stack" hx-put="/entries/{{ entry.id }}" hx-swap="none" x-data="macroForm">
+  {% if in_sheet %}<input type="hidden" name="sheet" value="1">{% endif %}
+  {% if errors.form %}<p class="error">{{ errors.form }}</p>{% endif %}
+  <div class="field{% if errors.name %} invalid{% endif %}">
+    <label for="{{ prefix }}-name">Name</label>
+    <input class="glass-input" id="{{ prefix }}-name" type="text" name="name" maxlength="100" value="{{ values.get('name', '') }}">
+    {% if errors.name %}<span class="error">{{ errors.name }}</span>{% endif %}
+  </div>
+  {% include "partials/macro_fields.html" %}
+  <div class="actions">
+    <button type="button" class="btn btn-glass btn-danger" hx-delete="/entries/{{ entry.id }}" hx-swap="none" hx-confirm="Delete this entry?">Delete</button>
+    {% if in_sheet %}
+    <button type="button" class="btn btn-glass" @click="$dispatch('close-edit')">Cancel</button>
+    {% else %}
+    <button type="button" class="btn btn-glass" hx-get="/entries/{{ entry.id }}/row" hx-target="#entry-{{ entry.id }}" hx-swap="outerHTML">Cancel</button>
+    {% endif %}
+    <button type="submit" class="btn accent">Save</button>
+  </div>
+</form>
