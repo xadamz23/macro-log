@@ -100,3 +100,5 @@ docker push "xadamz23/macro-log:$tag"
 # ssh to host and update app
 echo "[INFO] ssh'ing to docker-public vm"
 ssh -o BatchMode=yes root@docker-public.stizzle.org "/home/dockerapps/macrolog/update-app.sh $tag"
+
+echo "[INFO] deployed: ${latest:-none} -> $tag now running (commit $commit on $branch)"
