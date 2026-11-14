@@ -54,7 +54,8 @@ document.addEventListener("keydown", (event) => {
   if (!desktop.matches || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
   if (event.target.closest("input, textarea, select, [contenteditable]")) return;
   const sheet = document.querySelector(".sheet");
-  const sheetOpen = sheet && getComputedStyle(sheet).display !== "none";
+  // Not display: the drawer stays shown while it slides away.
+  const sheetOpen = sheet && !sheet.inert;
   if (event.key === "n" || event.key === "/") {
     if (!sheet) {
       if (event.key === "n") window.location.assign("/?log=1");
@@ -62,7 +63,7 @@ document.addEventListener("keydown", (event) => {
     }
     event.preventDefault();
     if (!sheetOpen) window.dispatchEvent(new CustomEvent("open-log"));
-    setTimeout(() => (sheet.querySelector(".food-search") || sheet.querySelector("#entry-name"))?.focus(), 0);
+    setTimeout(() => (sheet.querySelector(".food-search") || sheet.querySelector("#entry-name"))?.focus({ preventScroll: true }), 0);
   } else if ((event.key === "ArrowLeft" || event.key === "ArrowRight") && !sheetOpen) {
     const link = document.querySelector(`a.day-nav[aria-label="${event.key === "ArrowLeft" ? "Previous" : "Next"} day"]`);
     if (link) {

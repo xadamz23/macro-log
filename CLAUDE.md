@@ -37,8 +37,9 @@ Tailwind or build step, so a new class works as soon as it's in that file.
   log sheet) at 390px and 1000px on the old and new code and check they're identical.
   - **Shell:** a fixed `.side` sidebar (in `base.html`) replaces the bottom nav and the header menu, which hide. Its
     Log food button (`side_log_button` block) opens the sheet on the day page and links to `/?log=1` elsewhere. The
-    log sheet opens as a right-hand drawer; it stays closed until asked for. `app.js` adds desktop-only shortcuts: N
-    or / opens the sheet with the food search focused, ← / → step through days.
+    log sheet opens as a right-hand drawer that slides in and out (240ms; the Alpine `x-transition` classes on it
+    only have CSS on desktop, so phones stay instant); it stays closed until asked for. `app.js` adds desktop-only
+    shortcuts: N or / opens the sheet with the food search focused, ← / → step through days.
   - **Day page:** same 1240px column and gutters as the History/Weight dashboards, date flush left and a
     ‹ Today › pill (`.day-step`) on the right in place of the title's arrows (those stay in the markup, hidden, for the
     ← / → shortcut). Below: a week strip (`partials/week_strip.html`), the macros as four KPI cards (`#day-kpis`,

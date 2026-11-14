@@ -50,9 +50,12 @@
 <div x-data="logSheet({{ 'true' if open_log else 'false' }})"
      @open-log.window="show()" @entry-logged.window="hide()" @keydown.escape.window="hide()">
   <div class="sheet-backdrop" x-show="open" x-transition.opacity x-cloak @click="hide()"></div>
-  {# No slide: Chrome on Android sometimes stalls the page for ~100 ms, mostly on the first open after a resume, and
-     that showed as a hitch mid-slide. Appearing at once hides it. #}
-  <div class="sheet glass-strong" x-ref="sheet" role="dialog" aria-modal="true" aria-label="Log food" x-show="open" x-cloak :inert="!open">
+  {# No slide on phones: Chrome on Android sometimes stalls the page for ~100 ms, mostly on the first open after a
+     resume, and that showed as a hitch mid-slide. Appearing at once hides it. The transition classes only have CSS on
+     desktop, where the drawer slides in from the right; on phones they have no duration, so Alpine skips them. #}
+  <div class="sheet glass-strong" x-ref="sheet" role="dialog" aria-modal="true" aria-label="Log food" x-show="open" x-cloak :inert="!open"
+       x-transition:enter="sheet-anim" x-transition:enter-start="sheet-off"
+       x-transition:leave="sheet-anim" x-transition:leave-end="sheet-off">
     <div class="sheet-handle"></div>
     <div class="sheet-head">
       <h2>Log food{% if not is_today %} · {{ day|day(today) }}{% endif %}</h2>
