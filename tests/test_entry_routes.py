@@ -18,7 +18,8 @@ def test_create_entry_autofills_calories_and_returns_oob(client, db):
     r = client.post("/entries", data={"day": TODAY.isoformat(), "name": "Oats", "protein": "10", "fat": "5", "carbs": "40", "calories": ""})
     assert r.status_code == 200
     assert r.headers["HX-Trigger"] == "entry-logged"
-    assert 'id="bars" class="card glass bars" hx-swap-oob="true"' in r.text
+    assert 'id="bars" class="card glass bars mobile-only" hx-swap-oob="true"' in r.text
+    assert 'id="day-kpis" class="day-kpis desktop-only" hx-swap-oob="true"' in r.text
     assert 'id="entries" class="card glass entries" hx-swap-oob="true"' in r.text
     assert 'id="week-strip" class="week desktop-only" aria-label="This week" hx-swap-oob="true"' in r.text
     assert "Logged Oats" in r.text

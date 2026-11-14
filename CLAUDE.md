@@ -39,8 +39,12 @@ Tailwind or build step, so a new class works as soon as it's in that file.
     Log food button (`side_log_button` block) opens the sheet on the day page and links to `/?log=1` elsewhere. The
     log sheet opens as a right-hand drawer; it stays closed until asked for. `app.js` adds desktop-only shortcuts: N
     or / opens the sheet with the food search focused, ← / → step through days.
-  - **Day page:** a week strip (`partials/week_strip.html`, refreshed out of band after each write like the bars),
-    the macro bars four across, and entries as table columns (`.entry-cols` inside the row's button).
+  - **Day page:** same 1240px column and gutters as the History/Weight dashboards, date flush left and a
+    ‹ Today › pill (`.day-step`) on the right in place of the title's arrows (those stay in the markup, hidden, for the
+    ← / → shortcut). Below: a week strip (`partials/week_strip.html`), the macros as four KPI cards (`#day-kpis`,
+    rendered next to the phone-only `#bars` in `macro_bars.html`; both refresh out of band after each write), and
+    entries as table columns (`.entry-cols` inside the row's button), each with a share-of-target bar sized from
+    `--kcal` on the row and `--kcal-target` on `#entries`.
   - **History, Weight:** `.dash` turns each page into a 12-column grid (`grid-template-areas` in the "Desktop
     dashboards" block of `app.css`). Each `.charts` card becomes `display: contents` so its `.chart-panel`s and range
     control are grid items; on phones the panels are flattened back into the one glass card.

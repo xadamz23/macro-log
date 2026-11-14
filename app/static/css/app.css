@@ -851,30 +851,52 @@ kbd {
   .sheet-handle { display: none; }
 
   /* Day page */
-  .page-day { max-width: 980px; padding-top: 28px; }
-  .page-day .day-header-switch { display: flex; justify-content: space-between; margin-bottom: 18px; }
-  .page-day .day-header-switch > span:first-child { display: none; }
-  .page-day .day-switch { justify-content: flex-start; gap: 6px; }
+  /* Same column, gutters and title position as the History and Weight dashboards, so nothing jumps between pages.
+     The date sits flush left; the ‹ Today › pill (.day-step) takes the arrows' place on the right. */
+  .page-day { max-width: 1240px; padding: 28px 32px 48px; }
+  .page-day .day-header-switch { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .page-day .day-header-switch > span:first-child, .page-day .day-switch .day-nav { display: none; }
+  .page-day .day-switch { justify-content: flex-start; }
   .page-day .day-title { font-size: 1.75rem; }
-  .page-day #bars { grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 24px; padding: 20px; }
-  .page-day #bars > .hint { grid-column: 1 / -1; }
-  .page-day #bars .bar-head { flex-direction: column; align-items: flex-start; gap: 2px; margin-bottom: 10px; }
-  .page-day #bars .bar-label { font-size: 0.85rem; color: var(--muted); }
-  .page-day #bars .bar-value { white-space: nowrap; }
-  .page-day #bars .bar-value strong { font-size: 1.5rem; font-weight: 750; letter-spacing: -0.02em; }
-  .page-day #bars .bar-calories .bar-value strong { color: var(--cal); }
+  .day-tools { display: flex; align-items: center; gap: 14px; }
+  .day-step { margin: 0; }
+  .day-step > * {
+    display: inline-grid; place-items: center; min-width: 44px; min-height: 36px; padding: 0 14px;
+    border: 1px solid transparent; border-radius: 999px;
+    font-size: 0.9rem; font-weight: 600; color: var(--muted); text-decoration: none;
+  }
+  .day-step > [aria-label] { font-size: 1.2rem; }
+  .day-step > a:not(.accent):hover { color: var(--text); background: var(--hover); }
+  .day-step > a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .day-step > .is-disabled { opacity: 0.35; font-size: 1.2rem; }
+
+  /* Macros as four summary cards (#day-kpis), matching History's top row. */
+  .day-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
+  .day-kpis > .hint { grid-column: 1 / -1; margin: 0; }
+  .day-kpis .card { margin: 0; padding: 20px; }
+  .day-kpis .kpi-value { margin-top: 6px; }
+  .day-kpis .bar-calories .kpi-num { color: var(--cal); }
+  .day-kpis .over .kpi-sub strong { color: var(--over); }
+  .day-kpis .kpi-meter { height: 8px; margin-top: 10px; }
+  .day-kpis .kpi-sub { margin-top: 6px; }
+
+  /* Each entry's share of the day's calorie target, right-aligned against the kcal column. */
+  #entries .entry-name { display: flex; align-items: center; gap: 10px; }
+  .entry-share { flex: 0 1 160px; height: 4px; margin-left: auto; border-radius: 999px; background: var(--track); overflow: hidden; }
+  .entry-share i { display: block; height: 100%; width: min(100%, calc(var(--kcal) * 100% / var(--kcal-target))); border-radius: inherit; background: var(--cal); opacity: 0.75; }
+  #entries:not(.has-kcal-target) .entry-share { display: none !important; }
 
   /* Entries as a table: time | food | kcal | protein | fat | carbs | edit. The row is time + the edit button,
      and the button is its own grid with the same columns, so the cells line up with the head and total rows. */
   .page-day .entries { padding: 20px; }
-  .entries-head, .entries-total { display: grid; grid-template-columns: 84px minmax(0, 1fr) repeat(4, 76px) 44px; gap: 0 12px; padding: 0 8px; font-variant-numeric: tabular-nums; }
+  .entries-head, .entries-total { display: grid; grid-template-columns: 84px minmax(0, 1fr) repeat(4, 96px) 44px; gap: 0 12px; padding: 0 8px; font-variant-numeric: tabular-nums; }
   .entries-head { padding-bottom: 8px; font-size: 0.78rem; font-weight: 600; color: var(--muted); }
   .entries-total { padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.18); font-weight: 700; }
   .entries-head > :nth-child(n+3), .entries-total > :nth-child(n+3), .entry-cols > span { text-align: right; }
   #entries .entry-row:has(> .entry-main) { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 0 12px; padding: 0 8px; border-radius: 10px; transition: background 0.15s; }
   #entries .entry-row:has(> .entry-main):hover { background: var(--hover); }
   #entries .entry-time { order: -1; }
-  #entries .entry-main { grid-template-columns: minmax(0, 1fr) repeat(4, 76px) 44px; gap: 0 12px; align-items: center; font-variant-numeric: tabular-nums; }
+  #entries .entry-main { grid-template-columns: minmax(0, 1fr) repeat(4, 96px) 44px; gap: 0 12px; align-items: center; font-variant-numeric: tabular-nums; }
   #entries .entry-main::after { content: "Edit"; text-align: right; font-size: 0.85rem; font-weight: 600; color: var(--accent); opacity: 0; transition: opacity 0.15s; }
   #entries .entry-row:hover .entry-main::after, #entries .entry-main:focus-visible::after { opacity: 1; }
   .entry-cols { display: contents; }

@@ -111,3 +111,32 @@ def test_day_page_week_strip_and_entry_totals(client, db):
     assert r.text.count('class="wk-day') == 7
     assert 'aria-current="date"' in r.text
     assert '<span class="ec-kcal">1,700</span>' in r.text  # desktop total row
+
+
+def test_day_page_desktop_cards_stepper_and_share(client, db):
+    from datetime import timedelta
+
+    set_targets(db, TODAY - timedelta(days=30), Macros(2000, 150, 70, 200))
+    create_entry(db, day=TODAY, macros=Macros(500, 40.5, 10, 50), name="Oats")
+    r = client.get("/")
+    kpis = r.text.split('id="day-kpis"')[1].split("</div>\n</div>")[0]
+    assert kpis.count('class="card glass kpi') == 4
+    assert '<span class="kpi-num">500</span> <small>/ 2,000 kcal</small>' in kpis
+    assert '<span class="kpi-num">40.5</span>' in kpis
+    assert "<strong>1,500 kcal</strong> left · 25%" in kpis
+    # Today's pill is current and there is no next day.
+    step = r.text.split('class="segmented glass day-step"')[1].split("</nav>")[0]
+    assert 'class="accent" aria-current="date">Today' in step
+    assert 'class="is-disabled"' in step
+    assert 'class="card glass entries has-kcal-target" style="--kcal-target: 2000"' in r.text
+    assert 'style="--kcal: 500"' in r.text
+
+
+def test_past_day_stepper_links_forward(client, db):
+    from datetime import timedelta
+
+    r = client.get(f"/day/{(TODAY - timedelta(days=1)).isoformat()}")
+    step = r.text.split('class="segmented glass day-step"')[1].split("</nav>")[0]
+    assert 'aria-current="date">Today' not in step
+    assert '<a href="/" aria-label="Next day">' in step
+    assert "has-kcal-target" not in r.text  # no targets, no share bars

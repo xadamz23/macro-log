@@ -1,4 +1,4 @@
-<section id="bars" class="card glass bars"{% if oob %} hx-swap-oob="true"{% endif %}>
+<section id="bars" class="card glass bars mobile-only"{% if oob %} hx-swap-oob="true"{% endif %}>
   {% if not has_targets %}<p class="hint">No targets yet — <a href="/settings">set your targets</a>.</p>{% endif %}
   {% for bar in bars %}
   <div class="bar bar-{{ bar.key }}{% if bar.over %} over{% endif %}">
@@ -15,3 +15,20 @@
   </div>
   {% endfor %}
 </section>
+{% macro amount(bar, v) %}{{ "{:,}".format(v|round|int) if bar.key == "calories" else v|num }}{% endmacro %}
+{# Desktop: the same numbers as one card each, like the summary tiles at the top of History. #}
+<div id="day-kpis" class="day-kpis desktop-only"{% if oob %} hx-swap-oob="true"{% endif %}>
+  {% if not has_targets %}<p class="hint">No targets yet — <a href="/settings">set your targets</a>.</p>{% endif %}
+  {% for bar in bars %}
+  <section class="card glass kpi bar-{{ bar.key }}{% if bar.over %} over{% endif %}">
+    <div class="kpi-label">{{ bar.label }}</div>
+    <div class="kpi-value"><span class="kpi-num">{{ amount(bar, bar.consumed) }}</span>{% if bar.target is not none %} <small>/ {{ amount(bar, bar.target) }} {{ bar.unit }}</small>{% else %} <small>{{ bar.unit }}</small>{% endif %}</div>
+    <div class="bar-track kpi-meter" role="progressbar" aria-label="{{ bar.label }}" aria-valuemin="0" aria-valuemax="{{ bar.target or 0 }}" aria-valuenow="{{ bar.consumed }}">
+      <div class="bar-fill" style="width: {{ bar.pct }}%"></div>
+    </div>
+    {% if bar.target %}
+    <div class="kpi-sub">{% if bar.over %}<strong>{{ amount(bar, 0 - bar.remaining) }} {{ bar.unit }}</strong> over{% else %}<strong>{{ amount(bar, bar.remaining) }} {{ bar.unit }}</strong> left{% endif %} · {{ (bar.consumed / bar.target * 100)|round|int }}%</div>
+    {% endif %}
+  </section>
+  {% endfor %}
+</div>

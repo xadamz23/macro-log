@@ -17,7 +17,19 @@
     {% endif %}
   </div>
   {% include "partials/header_menu.html" %}
-  <span class="day-keys desktop-only" aria-hidden="true"><kbd>←</kbd><kbd>→</kbd> change day</span>
+  {# Desktop: the arrows move out of the title into a pill on the right, where History puts its range control. #}
+  <div class="day-tools desktop-only">
+    <span class="day-keys" aria-hidden="true"><kbd>←</kbd><kbd>→</kbd></span>
+    <nav class="segmented glass day-step" aria-label="Change day">
+      <a href="/day/{{ prev_day.isoformat() }}" aria-label="Previous day">‹</a>
+      <a href="/"{% if is_today %} class="accent" aria-current="date"{% endif %}>Today</a>
+      {% if next_day %}
+      <a href="{{ '/' if next_day == today else '/day/' ~ next_day.isoformat() }}" aria-label="Next day">›</a>
+      {% else %}
+      <span class="is-disabled" aria-hidden="true">›</span>
+      {% endif %}
+    </nav>
+  </div>
 </header>
 {% if is_today and not weighed_today %}
 <a class="nudge glass" href="/weight"><span>No weigh-in yet today</span><strong>Log weight</strong></a>

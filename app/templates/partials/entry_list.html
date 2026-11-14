@@ -1,4 +1,6 @@
-<section id="entries" class="card glass entries"{% if oob %} hx-swap-oob="true"{% endif %}>
+{# --kcal-target sizes each row's share-of-day bar on desktop; rows also render alone, so it lives here. #}
+{% set kcal_target = bars[0].target if bars else none %}
+<section id="entries" class="card glass entries{% if kcal_target %} has-kcal-target" style="--kcal-target: {{ kcal_target }}{% endif %}"{% if oob %} hx-swap-oob="true"{% endif %}>
   <h2>Entries</h2>
   {% if entries %}
   <div class="entries-head desktop-only" aria-hidden="true"><span>Time</span><span>Food</span><span>kcal</span><span>Protein</span><span>Fat</span><span>Carbs</span></div>
