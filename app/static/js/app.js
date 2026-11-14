@@ -312,7 +312,12 @@ document.addEventListener("alpine:init", () => {
   Alpine.data("logSheet", (autoOpen) => ({
     open: false,
     init() {
-      if (autoOpen) this.show();
+      // x-show doesn't transition its first state, so on desktop (/?log=1 from the sidebar on another page) open a
+      // frame later to get the drawer's slide. Phones have no slide and open at once, as before.
+      if (autoOpen) {
+        if (window.matchMedia("(min-width: 1100px)").matches) requestAnimationFrame(() => this.show());
+        else this.show();
+      }
       // Returning from another app can leave the focused field hidden under the keyboard.
       document.addEventListener("visibilitychange", () => {
         const el = document.activeElement;
