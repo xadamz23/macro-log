@@ -4,7 +4,7 @@
 {% block content %}
 <header class="day-header day-header-switch">
   <span aria-hidden="true"></span>
-  <div class="day-switch">
+  <div class="day-switch" data-prefetch>
     <a class="day-nav" href="/day/{{ prev_day.isoformat() }}" aria-label="Previous day">‹</a>
     <h1 class="day-title">{{ day|day(today) }} <span class="day-title-caret" aria-hidden="true">▾</span>
       <input type="date" class="date-jump" aria-label="Jump to date" max="{{ today.isoformat() }}" value="{{ day.isoformat() }}"
@@ -19,7 +19,7 @@
   {% include "partials/header_menu.html" %}
   {# Desktop: the arrows move out of the title into a pill on the right, where History puts its range control. #}
   <div class="day-tools desktop-only">
-    <nav class="segmented glass day-step" aria-label="Change day">
+    <nav class="segmented glass day-step" aria-label="Change day" data-prefetch>
       <a href="/day/{{ prev_day.isoformat() }}" aria-label="Previous day">‹</a>
       <a href="/"{% if is_today %} class="accent" aria-current="date"{% endif %}>Today</a>
       {% if next_day %}

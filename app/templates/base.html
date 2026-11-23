@@ -31,7 +31,7 @@
   {% block overlay %}{% endblock %}
   <div id="toast" class="toast-slot"></div>
   {# Desktop (1100px and up): a sidebar takes the bottom nav's place, and holds the header menu's links too. #}
-  <nav class="side glass-strong desktop-only" aria-label="Main" x-data>
+  <nav class="side glass-strong desktop-only" aria-label="Main" x-data data-prefetch>
     <a class="brand" href="/"><span class="brand-mark">{{ icon("history") }}</span>Macro Log</a>
     {% block side_log_button %}<a href="/?log=1" class="btn accent log-cta">{{ icon("plus") }}Log food</a>{% endblock %}
     {{ side_item("today", "/", "Today") }}
@@ -42,7 +42,7 @@
     {{ side_item("export", "/export", "Export") }}
     {{ side_item("settings", "/settings", "Settings") }}
   </nav>
-  <nav class="bottom-nav glass-strong" aria-label="Main" x-data>
+  <nav class="bottom-nav glass-strong" aria-label="Main" x-data data-prefetch>
     {{ nav_item("today", "/", "Today") }}
     {{ nav_item("history", "/history", "History") }}
     {% block log_button %}<a href="/?log=1" class="log-btn" aria-label="Log food">{{ icon("plus") }}</a>{% endblock %}

@@ -506,6 +506,26 @@ document.addEventListener("alpine:init", () => {
   });
 });
 
+// Prefetch: as a finger or mouse button goes down on a link inside [data-prefetch] (the bottom
+// nav, the sidebar, the day arrows), ask the service worker to start loading its page, so it's on
+// its way before the tap ends (see sw.js). Only when the worker is in charge (without it this
+// would just be a second request). Links elsewhere aren't prefetched: a finger landing on a list
+// to scroll it shouldn't load pages. A tap fires touchstart and then mousedown: one is enough.
+let lastPrefetch = { href: "", at: 0 };
+function prefetch(event) {
+  const link = event.target.closest?.("[data-prefetch] a[href]");
+  if (!link || link.hasAttribute("download") || !navigator.serviceWorker?.controller) return;
+  if (link.closest('[hx-boost="false"]')) return;
+  const url = new URL(link.href);
+  url.hash = "";
+  if (url.origin !== location.origin) return;
+  if (url.href === lastPrefetch.href && Date.now() - lastPrefetch.at < 2000) return;
+  lastPrefetch = { href: url.href, at: Date.now() };
+  fetch(url, { headers: { "HX-Request": "true", "HX-Boosted": "true", "X-Prefetch": "1" } }).catch(() => {});
+}
+document.addEventListener("touchstart", prefetch, { passive: true });
+document.addEventListener("mousedown", prefetch);
+
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js"));
 }

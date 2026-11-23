@@ -2,6 +2,16 @@
 
 See README.md for setup, tests and deploy.
 
+## Prefetch
+
+Links inside a `[data-prefetch]` container (the bottom nav, the sidebar, the day arrows in `today.html`) start
+loading on `touchstart`/`mousedown`: `app.js` sends an `X-Prefetch` request that `sw.js` keeps in memory, and the
+boosted request on release uses it. Each is used once, within `PREFETCH_MS` (5s), and any non-GET clears them all,
+so a page is never older than the tap that opened it. The worker answers a boosted request only when it holds a
+prefetched page for it; anything else goes to the network untouched. Add `data-prefetch` only around page links,
+never around lists people scroll (a finger landing to scroll would load pages). Don't use htmx's preload extension
+instead: it needs `Cache-Control: max-age` on pages, which would let the browser serve stale ones.
+
 ## UI Conventions
 
 Dark glassmorphism, dark-only. All styling lives in `app/static/css/app.css`, which is served as-is: there is no
