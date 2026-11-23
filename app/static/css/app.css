@@ -318,7 +318,8 @@ textarea { resize: vertical; }
    items and centered. The current item is a soft white glass tile with an accent icon (as in watchlist,
    reconcile and atmos). The + is a flat accent-outline capsule in the bar: an outline rather than a fill, so
    it stays the only outlined shape, and tall and narrow so it takes little width from the page items while
-   staying an easy target. Rounded corners rather than pill ends, so the ends don't curve in
+   staying an easy target. Its column is wider than it, so it has clear space either side of its neighbours
+   (and of the current item's tile). Rounded corners rather than pill ends, so the ends don't curve in
    beside the outer items. */
 .bottom-nav {
   position: fixed; z-index: 20;
@@ -326,7 +327,7 @@ textarea { resize: vertical; }
   bottom: var(--nav-bottom);
   height: var(--nav-h);
   padding: 6px;
-  display: grid; grid-template-columns: 70px 70px 34px 70px 70px; gap: 3px; align-items: center;
+  display: grid; grid-template-columns: 68px 68px 50px 68px 68px; gap: 3px; align-items: center;
   border-radius: 24px;
 }
 /* The keyboard resizes the viewport, so keep the nav from riding on top of it. */
