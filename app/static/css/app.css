@@ -316,8 +316,9 @@ textarea { resize: vertical; }
 
 /* Bottom nav: a glass panel floating clear of the screen edges (and the home indicator), sized to its
    items and centered. The current item is a soft white glass tile with an accent icon (as in watchlist,
-   reconcile and atmos). The + is a flat accent ring in the bar: an outline rather than a fill, so it
-   stays the only outlined shape. Rounded corners rather than pill ends, so the ends don't curve in
+   reconcile and atmos). The + is a flat accent-outline capsule in the bar: an outline rather than a fill, so
+   it stays the only outlined shape, and tall and narrow so it takes little width from the page items while
+   staying an easy target. Rounded corners rather than pill ends, so the ends don't curve in
    beside the outer items. */
 .bottom-nav {
   position: fixed; z-index: 20;
@@ -325,7 +326,7 @@ textarea { resize: vertical; }
   bottom: var(--nav-bottom);
   height: var(--nav-h);
   padding: 6px;
-  display: grid; grid-template-columns: 68px 68px 56px 68px 68px; gap: 4px; align-items: center;
+  display: grid; grid-template-columns: 70px 70px 34px 70px 70px; gap: 3px; align-items: center;
   border-radius: 24px;
 }
 /* The keyboard resizes the viewport, so keep the nav from riding on top of it. */
@@ -350,9 +351,9 @@ textarea { resize: vertical; }
 .nav-item svg { width: 22px; height: 22px; }
 .log-btn {
   justify-self: center;
-  width: 44px; height: 44px;
+  width: 34px; height: 46px; padding: 0;
   display: grid; place-items: center;
-  border-radius: 50%;
+  border-radius: 17px;
   border: 1.5px solid color-mix(in srgb, var(--accent) 55%, transparent);
   background: transparent;
   color: var(--accent);
@@ -361,7 +362,7 @@ textarea { resize: vertical; }
 }
 .log-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .log-btn:active { background: color-mix(in srgb, var(--accent) 12%, transparent); }
-.log-btn svg { width: 22px; height: 22px; }
+.log-btn svg { width: 20px; height: 20px; }
 
 /* Bottom sheet */
 .sheet-backdrop { position: fixed; inset: 0; z-index: 30; background: rgb(2 4 8 / 0.55); }

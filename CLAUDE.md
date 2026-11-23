@@ -40,7 +40,8 @@ Tailwind or build step, so a new class works as soon as it's in that file.
 - **Range/filter tabs:** `.segmented.glass` holding buttons; the active one gets `accent` (via Alpine `:class`).
 - **Bottom nav** floats clear of the screen edges, 64px tall, sized to its items and centered. The current item is a
   soft white glass tile (16% white, icon and label) with an `--accent` icon, matching watchlist, reconcile and atmos.
-  The + log button is a flat 44px accent-outline ring (`.log-btn`), not `.accent`, so it stays the only outlined shape. Mark the current item with
+  The + log button is a flat 34×46 accent-outline capsule (`.log-btn`), not `.accent`, so it stays the only outlined shape;
+  tall and narrow so the four page items get 70px each and the bar stays 340px. Mark the current item with
   `aria-current="page"` (the `nav_item` macro in `base.html` does this); don't add an `active` class.
 - **Desktop (1100px and up) must not change phones.** Phones keep exactly the layout they have. Markup for desktop
   only gets `desktop-only` (hidden below 1100px), markup for phones only gets `mobile-only`, and desktop layout rules
