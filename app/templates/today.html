@@ -2,7 +2,7 @@
 {% block title %}{{ day|day(today) }} · Macro Log{% endblock %}
 {% block page_class %} page-day{% endblock %}
 {% block content %}
-<header class="day-header day-header-switch">
+<header class="day-header day-header-switch"{% if day_left_ms is defined %} data-day-left="{{ day_left_ms }}"{% endif %}>
   <span aria-hidden="true"></span>
   <div class="day-switch" data-prefetch>
     <a class="day-nav" href="/day/{{ prev_day.isoformat() }}" aria-label="Previous day">‹</a>

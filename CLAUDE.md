@@ -12,6 +12,15 @@ prefetched page for it; anything else goes to the network untouched. Add `data-p
 never around lists people scroll (a finger landing to scroll would load pages). Don't use htmx's preload extension
 instead: it needs `Cache-Control: max-age` on pages, which would let the browser serve stale ones.
 
+## The day starts at 3:01am
+
+`clock.today_in` treats 3:01am local time (the timezone in Settings) as the start of a day, so something eaten after
+midnight still counts toward the evening before. Every "today" comes from it (`deps.Today`), so Today, History,
+Weight and the `/day/{day}` redirect all agree. `clock.day_ends` gives when a day ends. Today's log forms post a blank
+`day` that the server resolves when saving, so a stale page never files food under the day it was opened on. The Today
+page's header carries `data-day-left` (ms, from the server's clock), and `app.js` (`moveToNewDay`) loads `/` again
+once it passes, waiting while a sheet or inline edit is open, a request is in flight, or the page is hidden or offline.
+
 ## UI Conventions
 
 Dark glassmorphism, dark-only. All styling lives in `app/static/css/app.css`, which is served as-is: there is no

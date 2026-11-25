@@ -526,6 +526,23 @@ function prefetch(event) {
 document.addEventListener("touchstart", prefetch, { passive: true });
 document.addEventListener("mousedown", prefetch);
 
+// An open Today page moves on to the new day by itself. The day starts at 3:01am (clock.py), and the page's header
+// carries how long its day has left (data-day-left, in ms, from the server's clock so a phone's clock being off
+// doesn't matter). Once that passes it loads "/" again. It waits while a sheet or an inline edit is open, a request
+// is in flight, the page is hidden or the phone is offline, so nothing being typed is lost; a later check catches up.
+function moveToNewDay() {
+  const header = document.querySelector("[data-day-left]");
+  if (!header) return;
+  header.dataset.dayEnds ??= Date.now() + Number(header.dataset.dayLeft);
+  if (Date.now() < Number(header.dataset.dayEnds) || document.hidden || !navigator.onLine) return;
+  if (document.querySelector(".sheet:not([inert]), .entry-row .entry-edit, .htmx-request")) return;
+  location.replace("/");
+}
+setInterval(moveToNewDay, 60_000);
+document.addEventListener("visibilitychange", moveToNewDay);
+document.addEventListener("htmx:afterSettle", moveToNewDay);
+window.addEventListener("pageshow", moveToNewDay);
+
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js"));
 }
