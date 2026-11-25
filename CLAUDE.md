@@ -43,6 +43,8 @@ Tailwind or build step, so a new class works as soon as it's in that file.
   The + log button is a flat 34×46 accent-outline capsule (`.log-btn`), not `.accent`, so it stays the only outlined shape;
   tall and narrow, in a 50px column so it has clear space either side; the bar is 348px with 68px page items. Mark the current item with
   `aria-current="page"` (the `nav_item` macro in `base.html` does this); don't add an `active` class.
+- **No overscroll stretch:** `html` has `overscroll-behavior-y: none`. Android Chrome's stretch otherwise stretches the
+  whole viewport, fixed bottom nav included. It also turns off pull-to-refresh. (`contain` on the root keeps the stretch.)
 - **Desktop (1100px and up) must not change phones.** Phones keep exactly the layout they have. Markup for desktop
   only gets `desktop-only` (hidden below 1100px), markup for phones only gets `mobile-only`, and desktop layout rules
   live inside `@media (min-width: 1100px)`. Before committing a desktop change, screenshot every page (and the open
