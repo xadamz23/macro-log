@@ -16,10 +16,9 @@ instead: it needs `Cache-Control: max-age` on pages, which would let the browser
 
 `clock.today_in` treats 3:01am local time (the timezone in Settings) as the start of a day, so something eaten after
 midnight still counts toward the evening before. Every "today" comes from it (`deps.Today`), so Today, History,
-Weight and the `/day/{day}` redirect all agree. `clock.day_ends` gives when a day ends. Today's log forms post a blank
-`day` that the server resolves when saving, so a stale page never files food under the day it was opened on. The Today
-page's header carries `data-day-left` (ms, from the server's clock), and `app.js` (`moveToNewDay`) loads `/` again
-once it passes, waiting while a sheet or inline edit is open, a request is in flight, or the page is hidden or offline.
+Weight and the `/day/{day}` redirect all agree. Today's log forms post a blank `day` that the server resolves when
+saving, so a stale page never files food under the day it was opened on. An open Today page doesn't move on to the new
+day by itself; it shows the new day on its next load.
 
 ## UI Conventions
 

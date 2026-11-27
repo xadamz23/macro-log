@@ -28,11 +28,6 @@ def test_past_day_sheet_keeps_explicit_day(client):
     assert 'name="day" value="2026-10-10"' in client.get("/day/2026-10-10").text
 
 
-def test_only_today_page_carries_time_left_in_day(client):
-    assert re.search(r'data-day-left="\d+"', client.get("/").text)
-    assert "data-day-left" not in client.get("/day/2026-10-10").text
-
-
 def test_csrf_trusts_sec_fetch_site_over_rewritten_host(client):
     headers = {"Sec-Fetch-Site": "same-origin", "Origin": "https://macros.example.com"}
     assert client.post("/entries", data={"protein": "10"}, headers=headers).status_code == 200

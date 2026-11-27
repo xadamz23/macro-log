@@ -1,4 +1,4 @@
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime
 
 import pytest
 
@@ -27,19 +27,6 @@ def test_today_in_rolls_over_at_3_01_across_dst_changes():
     assert clock.today_in("America/Chicago", datetime(2026, 11, 1, 9, 1, tzinfo=UTC)) == date(2026, 11, 1)
     assert clock.today_in("America/Chicago", datetime(2026, 3, 8, 8, 0, tzinfo=UTC)) == date(2026, 3, 7)
     assert clock.today_in("America/Chicago", datetime(2026, 3, 8, 8, 1, tzinfo=UTC)) == date(2026, 3, 8)
-
-
-def test_day_ends_at_3_01_next_morning_local():
-    assert clock.day_ends(date(2026, 10, 13), "America/Chicago") == datetime(2026, 10, 14, 8, 1, tzinfo=UTC)
-    assert clock.day_ends(date(2026, 10, 31), "America/Chicago") == datetime(2026, 11, 1, 9, 1, tzinfo=UTC)
-    assert clock.day_ends(date(2026, 3, 7), "America/Chicago") == datetime(2026, 3, 8, 8, 1, tzinfo=UTC)
-
-
-def test_day_ends_matches_today_in():
-    for day in (date(2026, 10, 13), date(2026, 10, 31), date(2026, 3, 7)):
-        end = clock.day_ends(day, "America/Chicago")
-        assert clock.today_in("America/Chicago", end) == day + timedelta(days=1)
-        assert clock.today_in("America/Chicago", end - timedelta(seconds=1)) == day
 
 
 def test_naive_datetimes_are_treated_as_utc():

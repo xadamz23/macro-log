@@ -23,11 +23,6 @@ def today_in(tz_name: str, now: datetime | None = None) -> date:
     return (as_utc(now or utcnow()).astimezone(ZoneInfo(tz_name)) - _DAY_OFFSET).date()
 
 
-def day_ends(day: date, tz_name: str) -> datetime:
-    """When `day` ends (DAY_STARTS on the next calendar day, local time), in UTC."""
-    return datetime.combine(day + timedelta(days=1), DAY_STARTS, tzinfo=ZoneInfo(tz_name)).astimezone(UTC)
-
-
 def to_local(dt: datetime, tz_name: str) -> datetime:
     return as_utc(dt).astimezone(ZoneInfo(tz_name))
 
